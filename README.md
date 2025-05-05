@@ -113,3 +113,4 @@ composer install
 cp .env.example .env
 ```
 to be discussed...
+https://app.diagrams.net/#G1VCXwEQlDYPoBscY-hq9u9IHJlXEPbYM-#%7B%22pageId%22%3A%223gLzajpsw-CqP6qquiOM%22%7D

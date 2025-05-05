@@ -49,10 +49,10 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    // UUID 
     // protected static function boot()
     // {
     //     parent::boot();
-
     //     static::creating(function ($model) {
     //         $model->id = Str::uuid()->toString();
     //     });
@@ -61,7 +61,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the roles associated with the user.
      */
-    public function roles()
+    public function role()
     {
         return $this->hasOne(Role::class, 'id', 'role_id');
     }
