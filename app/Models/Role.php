@@ -11,6 +11,7 @@ class Role extends Model
         'id',
         'name',
         'description',
+        'color'
     ];
 
     public function user()

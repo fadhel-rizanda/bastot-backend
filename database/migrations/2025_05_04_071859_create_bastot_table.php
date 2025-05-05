@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,6 +15,7 @@ return new class extends Migration
             $table->string('id')->primary();
             $table->string('name');
             $table->text('description')->unique();
+            $table->string('color')->nullable();
             $table->timestamps();
         });
 
@@ -31,6 +31,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->nullable(false);
             $table->text('description')->nullable(false);
+            $table->string('color')->nullable();
             $table->timestamps();
         });
 
@@ -40,6 +41,7 @@ return new class extends Migration
             $table->string('title')->nullable(false);
             $table->text('message')->nullable(false);
             $table->boolean('is_read')->default(false);
+            $table->string('color')->nullable();
             $table->timestamps();
         });
 
@@ -188,7 +190,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('career_opportunity_id')->constrained('career_opportunity')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
-            $table->string('requirements_links')->nullable();
+            $table->string('requirements_link')->nullable();
             $table->foreignId('status_id')->constrained('statuses');
             $table->timestamps();
         });
@@ -217,7 +219,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('player_game_stats', function (Blueprint $table) {
+        Schema::create('game_stats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('game_id')->constrained('games')->cascadeOnUpdate()->cascadeOnDelete();
@@ -232,7 +234,7 @@ return new class extends Migration
 
         Schema::create('highlights', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('stat_id')->constrained('player_game_stats')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('stat_id')->constrained('game_stats')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('content')->nullable(false);
             $table->string('type')->nullable(false);
         });
@@ -242,7 +244,8 @@ return new class extends Migration
             $table->string('name')->nullable(false);
             $table->text('description')->nullable(false);
             $table->integer('duration')->nullable(false);
-            $table->foreignId('tag_id')->constrained('tags')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->string('image')->nullable();
+            $table->string('difficulty')->nullable();
             $table->timestamps();
         });
 
@@ -262,6 +265,56 @@ return new class extends Migration
             $table->foreignId('workout_plan_id')->constrained('workout_plan')->cascadeOnUpdate()->cascadeOnDelete();
             $table->decimal('progress')->default(0.0);
             $table->timestamps();
+        });
+
+//        many to many
+        Schema::create('court_review', function (Blueprint $table) {
+            $table->foreignId('court_id')->constrained('courts')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('review_id')->constrained('reviews')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
+            $table->primary(['court_id', 'review_id']);
+        });
+
+        Schema::create('community_review', function (Blueprint $table) {
+            $table->foreignId('community_id')->constrained('communities')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('review_id')->constrained('reviews')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
+            $table->primary(['community_id', 'review_id']);
+        });
+
+        Schema::create('community_tag', function (Blueprint $table) {
+            $table->foreignId('community_id')->constrained('communities')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('tag_id')->constrained('tags')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
+            $table->primary(['community_id', 'tag_id']);
+        });
+
+        Schema::create('event_tag', function (Blueprint $table) {
+            $table->foreignId('event_id')->constrained('events');
+            $table->foreignId('tag_id')->constrained('tags');
+            $table->timestamps();
+            $table->primary(['event_id', 'tag_id']);
+        });
+
+        SChema::create('tournament_tag', function (Blueprint $table) {
+            $table->foreignId('tournament_id')->constrained('tournaments');
+            $table->foreignId('tag_id')->constrained('tags');
+            $table->timestamps();
+            $table->primary(['tournament_id', 'tag_id']);
+        });
+
+        Schema::create('workout_plan_tag', function (Blueprint $table) {
+            $table->foreignId('workout_plan_id')->constrained('workout_plan');
+            $table->foreignId('tag_id')->constrained('tags');
+            $table->timestamps();
+            $table->primary(['workout_plan_id', 'tag_id']);
+        });
+
+        Schema::create('training_session_tag', function (Blueprint $table) {
+            $table->foreignId('training_session_id')->constrained('training_sessions');
+            $table->foreignId('tag_id')->constrained('tags');
+            $table->timestamps();
+            $table->primary(['training_session_id', 'tag_id']);
         });
     }
 
@@ -284,7 +337,7 @@ return new class extends Migration
         Schema::dropIfExists('games');
         Schema::dropIfExists('teams');
         Schema::dropIfExists('user_team');
-        Schema::dropIfExists('player_game_stats');
+        Schema::dropIfExists('game_stats');
         Schema::dropIfExists('highlights');
         Schema::dropIfExists('workout_plan');
         Schema::dropIfExists('training_session');
@@ -294,5 +347,12 @@ return new class extends Migration
         Schema::dropIfExists('tags');
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('reviews');
+        Schema::dropIfExists('court_review');
+        Schema::dropIfExists('community_review');
+        Schema::dropIfExists('community_tag');
+        Schema::dropIfExists('event_tag');
+        Schema::dropIfExists('tournament_tag');
+        Schema::dropIfExists('workout_plan_tag');
+        Schema::dropIfExists('training_session_tag');
     }
 };
