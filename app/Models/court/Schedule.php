@@ -14,4 +14,13 @@ class Schedule extends Model
         'price',
         'is_available'
     ];
+
+    public function court()
+    {
+        return $this->belongsTo(Court::class);
+    }
+
+    public function reservations(){
+        return $this->hasMany(Reservation::class);
+    }
 }

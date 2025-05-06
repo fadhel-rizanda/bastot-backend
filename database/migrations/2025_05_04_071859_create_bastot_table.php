@@ -186,7 +186,7 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        Schema::create('career_opportunity_application', function (Blueprint $table) {
+        Schema::create('applicants', function (Blueprint $table) {
             $table->id();
             $table->foreignId('career_opportunity_id')->constrained('career_opportunity')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
@@ -219,7 +219,7 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        Schema::create('game_stats', function (Blueprint $table) {
+        Schema::create('stats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('game_id')->constrained('games')->cascadeOnUpdate()->cascadeOnDelete();
@@ -234,7 +234,7 @@ return new class extends Migration {
 
         Schema::create('highlights', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('stat_id')->constrained('game_stats')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('stat_id')->constrained('stats')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('content')->nullable(false);
             $table->string('type')->nullable(false);
         });
@@ -259,7 +259,7 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        Schema::create('user_training_session', function (Blueprint $table) {
+        Schema::create('user_workout_plan', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('workout_plan_id')->constrained('workout_plan')->cascadeOnUpdate()->cascadeOnDelete();
@@ -333,11 +333,11 @@ return new class extends Migration {
         Schema::dropIfExists('reservations');
         Schema::dropIfExists('locations');
         Schema::dropIfExists('career_opportunity');
-        Schema::dropIfExists('career_opportunity_application');
+        Schema::dropIfExists('applicants');
         Schema::dropIfExists('games');
         Schema::dropIfExists('teams');
         Schema::dropIfExists('user_team');
-        Schema::dropIfExists('game_stats');
+        Schema::dropIfExists('stats');
         Schema::dropIfExists('highlights');
         Schema::dropIfExists('workout_plan');
         Schema::dropIfExists('training_session');

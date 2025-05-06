@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\community\Event;
+use App\Models\court\Court;
 use Illuminate\Database\Eloquent\Model;
 
 class Location extends Model
@@ -19,4 +21,12 @@ class Location extends Model
         'country_code',
         'postal_code',
     ];
+
+    public function courts(){
+        return $this->hasMany(Court::class);
+    }
+
+    public function events(){
+        return $this->hasMany(Event::class);
+    }
 }
