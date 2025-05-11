@@ -3,10 +3,11 @@
 use App\Http\Controllers\Api\EmailVerificationNotificationController;
 use App\Http\Controllers\Api\VerifyEmailController;
 use App\Http\Controllers\PostController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use \App\Http\Controllers\Api\AuthController;
 use App\Http\Middleware\isPlayer;
+use \App\Http\Middleware\isTeamOwner;
+use \App\Http\Controllers\User\PlayerController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -42,3 +43,18 @@ Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
 Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
     ->middleware(['auth:api', 'throttle:6,1'])
     ->name('verification.send');
+
+// player routes
+Route::middleware(['auth:api', isPlayer::class])->group(function () {
+    Route::get("/my-teams", [PlayerController::class, 'myTeams']);
+    Route::post("/teams", [PlayerController::class, 'createTeam']);
+    Route::post("/teams/{teamId}/join", [PlayerController::class, 'joinTeam']);
+    Route::delete("/teams/{teamId}/leave", [PlayerController::class, 'leaveTeam']);
+    Route::delete("/teams/{teamId}/kick/{userId}", [PlayerController::class, 'kickPlayer'])->middleware(isTeamOwner::class);
+    Route::post("/teams/{teamId}/rejoin", [PlayerController::class, 'rejoin']);
+    Route::post("/teams/{teamId}/activate/{userId}", [PlayerController::class, 'activatePlayer'])->middleware(isTeamOwner::class);
+    Route::post("/teams/{teamId}/invite/{userId}", [PlayerController::class, 'invitePlayer'])->middleware(isTeamOwner::class);
+    Route::post("/teams/{teamId}/accept-invite", [PlayerController::class, 'acceptInvite']);
+    Route::get("/own-teams", [PlayerController::class, 'ownedTeams']);
+    Route::get("/detail-teams/{teamId}", [PlayerController::class, 'detailTeam']);
+});

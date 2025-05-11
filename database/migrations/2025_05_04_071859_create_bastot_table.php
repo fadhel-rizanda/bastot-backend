@@ -13,28 +13,29 @@ return new class extends Migration {
         //        general
         Schema::create('roles', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->string('name');
+            $table->string('name')->unique()->nullable(false);
             $table->text('description')->unique();
             $table->string('color')->nullable();
             $table->timestamps();
         });
 
         Schema::create('statuses', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->string('label');
+            $table->string('id')->primary();
+            $table->string('name')->unique()->nullable(false);
+            $table->text('description')->unique();
             $table->string('color')->nullable();
             $table->timestamps();
         });
 
         Schema::create('tags', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable(false);
+            $table->string('id')->primary();
+            $table->string('name')->unique()->nullable(false);
             $table->text('description')->nullable(false);
             $table->string('color')->nullable();
             $table->timestamps();
         });
 
+//        content
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
@@ -206,8 +207,9 @@ return new class extends Migration {
 
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable(false);
+            $table->string('name')->nullable(false)->unique();
             $table->string('logo')->nullable();
+            $table->foreignId('team_owner_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });
 
@@ -216,7 +218,11 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('role_id')->constrained('roles')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('status_id')->constrained('statuses')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->text('notes')->nullable();
             $table->timestamps();
+            $table->unique(['user_id', 'team_id']);
+            $table->unique(['team_id', 'role_id']);
         });
 
         Schema::create('stats', function (Blueprint $table) {

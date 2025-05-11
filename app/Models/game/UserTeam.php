@@ -3,6 +3,7 @@
 namespace App\Models\game;
 
 use App\Models\Role;
+use App\Models\Status;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,7 +13,9 @@ class UserTeam extends Model
     protected $fillable = [
         'user_id',
         'team_id',
-        'role_id'
+        'role_id',
+        'status_id',
+        'notes'
     ];
 
     public function team(){
@@ -25,5 +28,9 @@ class UserTeam extends Model
 
     public function role(){
         return $this->belongsTo(Role::class);
+    }
+
+    public function status(){
+        return $this->belongsTo(Status::class);
     }
 }

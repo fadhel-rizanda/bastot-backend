@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Role;
+use App\Models\Status;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -34,6 +35,61 @@ class DatabaseSeeder extends Seeder
             'name' => 'Court Owner',
             'description' => 'Court owner role with specific permissions',
         ]);
+        Role::create([
+            'id' => 'PF',
+            'name' => 'Power Forward',
+            'description' => 'Power Forward position in basketball',
+        ]);
+        Role::create([
+            'id' => 'C',
+            'name' => 'Center',
+            'description' => 'Center position in basketball',
+        ]);
+        Role::create([
+            'id' => 'SF',
+            'name' => 'Small Forward',
+            'description' => 'Small Forward position in basketball',
+        ]);
+        Role::create([
+            'id' => 'SG',
+            'name' => 'Shooting Guard',
+            'description' => 'Shooting Guard position in basketball',
+        ]);
+        Role::create([
+            'id' => 'PG',
+            'name' => 'Point Guard',
+            'description' => 'Point Guard position in basketball',
+        ]);
+
+        Status::create([
+            'id' => 'ACTIVE',
+            'name' => 'Active',
+            'description' => 'User is active',
+        ]);
+
+        Status::create([
+            'id' => 'INACTIVE',
+            'name' => 'Inactive',
+            'description' => 'User is inactive',
+        ]);
+
+        Status::create([
+            'id' => 'DEACTIVATED',
+            'name' => 'Deactivated',
+            'description' => 'User is deactivated',
+        ]);
+
+        Status::create([
+            'id' => 'BANNED',
+            'name' => 'Banned',
+            'description' => 'User is banned',
+        ]);
+
+//        Role::create([
+//            'id' => '',
+//            'name' => '',
+//            'description' => '',
+//        ]);
 
         // User::factory()->create([
         //     'name' => 'Super Admin',

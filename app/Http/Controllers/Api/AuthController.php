@@ -26,6 +26,13 @@ class AuthController extends Controller
                 "role" => "required|string|in:SUPER_ADMIN,PLAYER,CAREER_PROVIDER,COURT_OWNER",
             ]);
 
+            if($fields["role"] == "CAREER_PROVIDER" && str_contains($fields["role"], "CAREER_PROVIDER")) {
+                return response()->json([
+                    "status" => "error",
+                    "message" => "You must use your company email"
+                ], 401);
+            }
+
             $user = User::create([
                 'name' => $fields["name"],
                 'email' => $fields["email"],
@@ -35,8 +42,7 @@ class AuthController extends Controller
 
 
             $token = $user->createToken('auth_token')->accessToken;
-
-            DB::commit();
+            DB::commit(); // REDIS MSH ERROR NANTI PINDAHIN KEBAWAH REDIS
 
             Redis::set("users:{$request->email}", json_encode($user->toArray()), 'EX', 60);
             event(new Registered($user));

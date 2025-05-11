@@ -10,7 +10,8 @@ class Team extends Model
     protected $table = 'teams';
     protected $fillable =[
         'name',
-        'logo'
+        'logo',
+        'team_owner_id'
     ];
 
     public function game()
@@ -23,7 +24,16 @@ class Team extends Model
         return $this->hasMany(UserTeam::class);
     }
 
+    public function isFull()
+    {
+        return $this->userTeam()->where('status_id', 'ACTIVE')->count() >= env("MAX_TEAM_SIZE");
+    }
+
     public function users(){
         return $this->belongsToMany(User::class, 'user_team', 'team_id', 'user_id');
+    }
+
+    public function teamOwner(){
+        return $this->belongsTo(User::class, 'team_owner_id');
     }
 }
