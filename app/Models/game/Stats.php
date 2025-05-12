@@ -11,12 +11,19 @@ class Stats extends Model
     protected $fillable = [
         'user_id',
         'game_id',
+        'minutes',
         'points',
         'rebounds',
         'assists',
         'steals',
         'blocks',
         'turnovers',
+        '3pm',
+        '3pa',
+        '2pm',
+        '2pa',
+        'ftm',
+        'fta',
     ];
 
     public function game(){

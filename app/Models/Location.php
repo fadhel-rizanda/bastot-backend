@@ -10,8 +10,8 @@ class Location extends Model
 {
     protected $table = 'locations';
     protected $fillable = [
+        'id',
         'name',
-        'place_id',
         'residential',
         'village',
         'city',
@@ -19,7 +19,7 @@ class Location extends Model
         'region',
         'country',
         'country_code',
-        'postal_code',
+        'postcode',
     ];
 
     public function courts(){

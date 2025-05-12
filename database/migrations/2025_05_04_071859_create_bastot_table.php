@@ -158,9 +158,8 @@ return new class extends Migration {
         });
 
         Schema::create('locations', function (Blueprint $table) {
-            $table->id();
+            $table->integer('id')->primary();
             $table->string('name');
-            $table->integer('place_id')->unique()->nullable(false);
             $table->string('residential')->nullable(false);
             $table->string('village')->nullable(false);
             $table->string('city')->nullable(false);
@@ -168,7 +167,7 @@ return new class extends Migration {
             $table->string('region')->nullable(false);
             $table->string('country')->nullable(false);
             $table->string('country_code')->nullable(false);
-            $table->string('postal_code')->nullable(false);
+            $table->string('postcode')->nullable(false);
             $table->timestamps();
         });
 
@@ -199,10 +198,11 @@ return new class extends Migration {
         Schema::create('games', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable(false);
-            $table->text('description')->nullable(false)->unique();
+            $table->text('description')->nullable(false);
             $table->foreignId('court_id')->constrained('courts')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('home_team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('away_team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
         });
 
         Schema::create('teams', function (Blueprint $table) {
@@ -229,12 +229,21 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('game_id')->constrained('games')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->integer('minutes')->nullable(false);
             $table->integer('points')->nullable(false);
             $table->integer('rebounds')->nullable(false);
             $table->integer('assists')->nullable(false);
             $table->integer('steals')->nullable(false);
             $table->integer('blocks')->nullable(false);
             $table->integer('turnovers')->nullable(false);
+            $table->integer('3pm')->nullable(false);
+            $table->integer('3pa')->nullable(false);
+            $table->integer('2pm')->nullable(false);
+            $table->integer('2pa')->nullable(false);
+            $table->integer('ftm')->nullable(false);
+            $table->integer('fta')->nullable(false);
+            $table->text('notes')->nullable();
+            $table->unique(["user_id", "game_id"]);
             $table->timestamps();
         });
 

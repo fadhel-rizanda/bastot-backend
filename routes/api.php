@@ -7,7 +7,11 @@ use Illuminate\Support\Facades\Route;
 use \App\Http\Controllers\Api\AuthController;
 use App\Http\Middleware\isPlayer;
 use \App\Http\Middleware\isTeamOwner;
+use \App\Http\Controllers\User\TeamController;
+use \App\Http\Controllers\User\CourtOwnerController;
 use \App\Http\Controllers\User\PlayerController;
+use \App\Http\Controllers\User\StatsController;
+use \App\Http\Controllers\User\GameController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -47,14 +51,25 @@ Route::post('/email/verification-notification', [EmailVerificationNotificationCo
 // player routes
 Route::middleware(['auth:api', isPlayer::class])->group(function () {
     Route::get("/my-teams", [PlayerController::class, 'myTeams']);
-    Route::post("/teams", [PlayerController::class, 'createTeam']);
-    Route::post("/teams/{teamId}/join", [PlayerController::class, 'joinTeam']);
-    Route::delete("/teams/{teamId}/leave", [PlayerController::class, 'leaveTeam']);
-    Route::delete("/teams/{teamId}/kick/{userId}", [PlayerController::class, 'kickPlayer'])->middleware(isTeamOwner::class);
-    Route::post("/teams/{teamId}/rejoin", [PlayerController::class, 'rejoin']);
-    Route::post("/teams/{teamId}/activate/{userId}", [PlayerController::class, 'activatePlayer'])->middleware(isTeamOwner::class);
-    Route::post("/teams/{teamId}/invite/{userId}", [PlayerController::class, 'invitePlayer'])->middleware(isTeamOwner::class);
-    Route::post("/teams/{teamId}/accept-invite", [PlayerController::class, 'acceptInvite']);
-    Route::get("/own-teams", [PlayerController::class, 'ownedTeams']);
-    Route::get("/detail-teams/{teamId}", [PlayerController::class, 'detailTeam']);
+    Route::get("/my-stats", [PlayerController::class, 'myStats']);
+
+
+    Route::post("/teams", [TeamController::class, 'createTeam']);
+    Route::post("/teams/{teamId}/join", [TeamController::class, 'joinTeam']);
+    Route::delete("/teams/{teamId}/leave", [TeamController::class, 'leaveTeam']);
+    Route::delete("/teams/{teamId}/kick/{userId}", [TeamController::class, 'kickPlayer'])->middleware(isTeamOwner::class);
+    Route::post("/teams/{teamId}/rejoin", [TeamController::class, 'rejoin']);
+    Route::post("/teams/{teamId}/activate/{userId}", [TeamController::class, 'activatePlayer'])->middleware(isTeamOwner::class);
+    Route::post("/teams/{teamId}/invite/{userId}", [TeamController::class, 'invitePlayer'])->middleware(isTeamOwner::class);
+    Route::post("/teams/{teamId}/accept-invite", [TeamController::class, 'acceptInvite']);
+    Route::get("/own-teams", [TeamController::class, 'ownedTeams']);
+    Route::get("/detail-teams/{teamId}", [TeamController::class, 'detailTeam']);
+
+    Route::get("/teams/{teamId}/players", [TeamController::class, 'getPlayers']);
+
+    Route::post("/games/{gameId}/stats/{playerId}", [StatsController::class, 'createStats']);
+    Route::put("/games/{gameId}/stats/{playerId}", [StatsController::class, 'updateStats']);
+
+    Route::post("/games",[GameController::class, 'createGame']);
+    Route::post("/courts",[CourtOwnerController::class, 'createCourt']);
 });
