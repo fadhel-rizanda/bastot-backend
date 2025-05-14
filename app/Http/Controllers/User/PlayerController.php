@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 class PlayerController extends Controller
 {
     use ResponseAPI;
+
     public function myTeams(Request $request): JsonResponse
     {
         $teams = $request->user()->userTeam()->with(['team'])->paginate(10);
@@ -19,18 +20,39 @@ class PlayerController extends Controller
                 'id' => $team->team_id,
                 'name' => $team->team->name ?? null,
                 'logo' => $team->team->logo ?? null,
-//                'role'   => $team->role->name ?? null,
                 'role' => $team->role_id ?? null,
                 'status' => $team->status_id,
             ];
         });
 
-        return $this->sendSucccessResponse('My Teams', 200, 'success', $data);
+        return $this->sendSucccessPaginationResponse('My Teams', 200, 'success', $data);
     }
 
-    public function myStats(Request $request): JsonResponse{
-        $data = $request->user()->stats()->with(['game.homeTeam', 'game.awayTeam'])->paginate(10);
-        return $this->sendSucccessResponse('My Stats', 200, 'success', $data);
-    }
+    public function myStats(Request $request): JsonResponse
+    {
+        $stats = $request->user()->stats()->with(['game.homeTeam', 'game.awayTeam'])->paginate(10);
+        $userId = $request->user()->id;
 
+        $data = $stats->through(function ($stat) use ($userId) {
+            return [
+                'game_id' => $stat->game_id,
+                'game_name' => $stat->game->name,
+                'game_description' => $stat->game->description,
+                'court' => $stat->game->court,
+                'home_team' => $stat->game->homeTeam ? [
+                    'id' => $stat->game->homeTeam->id,
+                    'name' => $stat->game->homeTeam->name,
+                ] : null,
+                'away_team' => $stat->game->awayTeam ? [
+                    'id' => $stat->game->awayTeam->id,
+                    'name' => $stat->game->awayTeam->name,
+                ] : null,
+                'my_team' => $stat->game->getUserTeam($userId),
+                'created_at' => $stat->created_at,
+                'updated_at' => $stat->updated_at,
+            ];
+        });
+
+        return $this->sendSucccessPaginationResponse('My Stats', 200, 'success', $data);
+    }
 }

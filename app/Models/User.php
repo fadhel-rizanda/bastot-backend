@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\career\Achievement;
 use App\Models\career\Applicant;
 use App\Models\career\CareerOpportunity;
+use App\Models\career\School;
+use App\Models\career\UserEducation;
 use App\Models\community\UserCommunity;
 use App\Models\court\Reservation;
 use App\Models\game\Stats;
@@ -108,5 +111,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function userWorkoutPlan(){
         return $this->hasMany(UserWorkoutPlan::class);
+    }
+
+    public function achievements(){
+        return $this->hasMany(Achievement::class);
+    }
+
+    public function educations(){
+        return $this->hasMany(UserEducation::class);
+    }
+
+    public function schools(){
+        return $this->hasManyThrough(UserEducation::class, School::class);
     }
 }

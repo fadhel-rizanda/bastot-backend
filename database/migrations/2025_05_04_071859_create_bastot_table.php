@@ -282,6 +282,43 @@ return new class extends Migration {
             $table->timestamps();
         });
 
+        Schema::create('user_education', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('school_id')->constrained('schools')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->string('degree')->nullable(false);
+            $table->string('grade')->nullable(false);
+            $table->text('activities')->nullable();
+            $table->date('start_date')->nullable(false);
+            $table->date('end_date')->nullable(false);
+            $table->timestamps();
+        });
+
+        Schema::create('schools', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->nullable(false);
+            $table->text('description')->nullable();
+            $table->text('additional_link')->nullable();
+            $table->string('address')->nullable(false);
+            $table->decimal('latitude')->nullable(false);
+            $table->decimal('longitude')->nullable();
+            $table->foreignId('location_id')->constrained('locations')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
+        });
+
+        Schema::create('achievements', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->string('title')->nullable(false);
+            $table->text('description')->nullable();
+            $table->string('image')->nullable();
+            $table->text('additional_link')->nullable();
+            $table->string('type')->nullable(false); // acd/nonacd
+            $table->date('issue_date')->nullable(false);
+            $table->date('expiration_date')->nullable();
+            $table->timestamps();
+        });
+
 //        many to many
         Schema::create('court_review', function (Blueprint $table) {
             $table->foreignId('court_id')->constrained('courts')->cascadeOnUpdate()->cascadeOnDelete();
@@ -356,7 +393,6 @@ return new class extends Migration {
         Schema::dropIfExists('highlights');
         Schema::dropIfExists('workout_plan');
         Schema::dropIfExists('training_session');
-        Schema::dropIfExists('user_training_session');
         Schema::dropIfExists('roles');
         Schema::dropIfExists('statuses');
         Schema::dropIfExists('tags');
@@ -369,5 +405,8 @@ return new class extends Migration {
         Schema::dropIfExists('tournament_tag');
         Schema::dropIfExists('workout_plan_tag');
         Schema::dropIfExists('training_session_tag');
+        Schema::dropIfExists('user_education');
+        Schema::dropIfExists('achievements');
+        Schema::dropIfExists('schools');
     }
 };

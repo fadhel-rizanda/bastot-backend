@@ -27,7 +27,7 @@ class TeamController extends Controller
             ];
         });
 
-        return $this->sendSucccessResponse('Owned Teams', 200, 'success', $data);
+        return $this->sendSucccessPaginationResponse('Owned Teams', 200, 'success', $data);
     }
 
     public function detailTeam(Request $request, $teamId): JsonResponse{

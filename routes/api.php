@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use \App\Http\Controllers\Api\AuthController;
 use App\Http\Middleware\isPlayer;
 use \App\Http\Middleware\isTeamOwner;
+use \App\Http\Middleware\isCourtOwner;
 use \App\Http\Controllers\User\TeamController;
 use \App\Http\Controllers\User\CourtOwnerController;
 use \App\Http\Controllers\User\PlayerController;
@@ -66,10 +67,11 @@ Route::middleware(['auth:api', isPlayer::class])->group(function () {
     Route::get("/detail-teams/{teamId}", [TeamController::class, 'detailTeam']);
 
     Route::get("/teams/{teamId}/players", [TeamController::class, 'getPlayers']);
+});
 
-    Route::post("/games/{gameId}/stats/{playerId}", [StatsController::class, 'createStats']);
-    Route::put("/games/{gameId}/stats/{playerId}", [StatsController::class, 'updateStats']);
-
+Route::middleware(['auth:api', isCourtOwner::class])->group(function () {
     Route::post("/games",[GameController::class, 'createGame']);
     Route::post("/courts",[CourtOwnerController::class, 'createCourt']);
+    Route::post("/games/{gameId}/stats/{playerId}", [StatsController::class, 'createStats']);
+    Route::put("/games/{gameId}/stats/{playerId}", [StatsController::class, 'updateStats']);
 });
