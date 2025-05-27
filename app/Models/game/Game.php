@@ -47,6 +47,15 @@ class Game extends Model
         return $userTeam ?: $this->awayTeam->userTeam->where('user_id', $userId)->first();
     }
 
+    public function getUserStats($userId)
+    {
+        $userTeam = $this->getUserTeam($userId);
+        if ($userTeam) {
+            return $this->stats()->where('user_id', $userId)->first();
+        }
+        return null;
+    }
+
     public function stats()
     {
         return $this->hasMany(Stats::class);

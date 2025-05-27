@@ -53,6 +53,7 @@ Route::post('/email/verification-notification', [EmailVerificationNotificationCo
 Route::middleware(['auth:api', isPlayer::class])->group(function () {
     Route::get("/my-teams", [PlayerController::class, 'myTeams']);
     Route::get("/my-stats", [PlayerController::class, 'myStats']);
+    Route::get("/my-educations", [PlayerController::class, 'myEducations']);
 
 
     Route::post("/teams", [TeamController::class, 'createTeam']);
@@ -65,8 +66,7 @@ Route::middleware(['auth:api', isPlayer::class])->group(function () {
     Route::post("/teams/{teamId}/accept-invite", [TeamController::class, 'acceptInvite']);
     Route::get("/own-teams", [TeamController::class, 'ownedTeams']);
     Route::get("/detail-teams/{teamId}", [TeamController::class, 'detailTeam']);
-
-    Route::get("/teams/{teamId}/players", [TeamController::class, 'getPlayers']);
+    Route::get("/teams/{teamId}/players", [TeamController::class, 'getPlayers']); //
 });
 
 Route::middleware(['auth:api', isCourtOwner::class])->group(function () {

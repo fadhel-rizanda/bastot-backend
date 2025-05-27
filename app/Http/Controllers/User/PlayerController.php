@@ -55,4 +55,20 @@ class PlayerController extends Controller
 
         return $this->sendSucccessPaginationResponse('My Stats', 200, 'success', $data);
     }
+
+    public function myEducations(Request $request): JsonResponse {
+        $data = $request->user()->educations()->with(['school'])->paginate(10)->through(function ($education) {
+            return [
+                'id' => $education->id,
+                'school' => $education->school->name,
+                'degree' => $education->degree,
+                'grade' => $education->grade,
+                'activities' => $education->activities,
+                'start_date' => $education->start_date,
+                'end_date' => $education->end_date,
+            ];
+        });
+
+        return $this->sendSucccessPaginationResponse('My Educations', 200, 'success', $data);
+    }
 }

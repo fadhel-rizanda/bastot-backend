@@ -31,13 +31,14 @@ class TeamController extends Controller
     }
 
     public function detailTeam(Request $request, $teamId): JsonResponse{
-        $team = Team::find($teamId);
+        $team = Team::with(['userTeam' => function ($query) {
+            $query->with(['user', 'role', 'status']);
+        }])->find($teamId);
+
         if (!$team) {
             return $this->sendErrorResponse("Team not found", 404, 'error', []);
         }
-        $team = $team->with(['userTeam' => function ($query) {
-            $query->with(['user', 'role', 'status']);
-        }])->first();
+
         $data = [
             'team_id' => $team->id,
             'owner_id' => $team->team_owner_id,
@@ -327,5 +328,28 @@ class TeamController extends Controller
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to accept invite to team', 500, 'error', $exception);
         }
+    }
+
+    public function getPlayers(Request $request, $teamId): JsonResponse{
+        $team = Team::with('userTeam.user')->find($teamId);
+        if (!$team) {
+            return $this->sendErrorResponse("Team not found", 404, 'error', []);
+        }
+        $players = $team->userTeam;
+
+
+        $data = [
+            'team_id' => $teamId,
+            'players' => $players->map(function ($player) {
+                return [
+                    'user_id' => $player->user->id,
+                    'name' => $player->user->name,
+                    'email' => $player->user->email,
+                    'role' => $player->role_id,
+                    'status' => $player->status_id,
+                ];
+            }),
+        ];
+        return $this->sendSucccessResponse('Team Players', 200, 'success', $data);
     }
 }
