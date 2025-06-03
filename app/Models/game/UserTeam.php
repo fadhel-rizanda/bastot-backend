@@ -32,6 +32,10 @@ class UserTeam extends Model
         return $this->hasManyThrough(User::class, UserTeam::class, 'team_id', 'id', 'id', 'user_id');
     }
 
+    public function userStats($gameId)
+    {
+        return $this->user->stats()->where('game_id', $gameId)->get();
+    }
 
     public function role(){
         return $this->belongsTo(Role::class);

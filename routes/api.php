@@ -22,6 +22,14 @@ use \App\Http\Controllers\User\GameController;
 //     return $request->user();
 // })->middleware('auth:api');
 
+Route::get('/', function () {
+    return response()->json([
+        "status" => "success",
+        "message" => "Selamat datang di aplikasi bastot"
+    ]);
+});
+
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 
@@ -39,6 +47,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get("/posts", [PostController::class, 'index']);
     Route::get("/posts/detail", [PostController::class, 'show']);
+
+    Route::get("/games/{gameId}/stats", [GameController::class, 'getStats']);
+    Route::get("/games/{gameId}/stats/{userId}", [GameController::class, 'getUserStats']);
 });
 
 Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
