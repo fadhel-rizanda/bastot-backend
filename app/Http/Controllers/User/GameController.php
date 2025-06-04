@@ -29,7 +29,7 @@ class GameController extends Controller
         try {
             $game = Game::create($fields);
             DB::commit();
-            return $this->sendSucccessResponse('Game created successfully', 201, 'success', $game);
+            return $this->sendSuccessResponse('Game created successfully', 201, 'success', $game);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to create game', 500, 'error', $exception);
@@ -116,7 +116,7 @@ class GameController extends Controller
                 $awayTeam
         ];
 
-        return $this->sendSucccessResponse('Stats retrieved successfully', 200, 'success', $data);
+        return $this->sendSuccessResponse('Stats retrieved successfully', 200, 'success', $data);
 
     }
 
@@ -127,6 +127,6 @@ class GameController extends Controller
             ->where('user_id', $userId)
             ->first();
 
-        return $this->sendSucccessResponse('User stats retrieved successfully', 200, 'success', $stats);
+        return $this->sendSuccessResponse('User stats retrieved successfully', 200, 'success', $stats);
     }
 }

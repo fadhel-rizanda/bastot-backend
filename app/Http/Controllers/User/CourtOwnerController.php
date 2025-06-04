@@ -67,7 +67,7 @@ class CourtOwnerController extends Controller
 
             $court = Court::create($fields);
             DB::commit();
-            return $this->sendSucccessResponse('Stats created successfully', 201, 'success', $court);
+            return $this->sendSuccessResponse('Stats created successfully', 201, 'success', $court);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to create stats', 500, 'error', $exception);
