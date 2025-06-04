@@ -27,7 +27,7 @@ class TeamController extends Controller
             ];
         });
 
-        return $this->sendSucccessPaginationResponse('Owned Teams', 200, 'success', $data);
+        return $this->sendSuccessPaginationResponse('Owned Teams', 200, 'success', $data);
     }
 
     public function detailTeam(Request $request, $teamId): JsonResponse{
@@ -57,7 +57,7 @@ class TeamController extends Controller
                 ];
             }),
         ];
-        return $this->sendSucccessResponse('Team Detail', 200, 'success', $data);
+        return $this->sendSuccessResponse('Team Detail', 200, 'success', $data);
     }
 
     public function createTeam(Request $request): JsonResponse
@@ -86,7 +86,7 @@ class TeamController extends Controller
             ]);
 
             DB::commit();
-            return $this->sendSucccessResponse('Team created successfully', 201, 'success', $team);
+            return $this->sendSuccessResponse('Team created successfully', 201, 'success', $team);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to create team', 500, 'error', $exception);
@@ -112,7 +112,7 @@ class TeamController extends Controller
             ]);
 
             DB::commit();
-            return $this->sendSucccessResponse('Successfully joined the team', 200, 'success', $team);
+            return $this->sendSuccessResponse('Successfully joined the team', 200, 'success', $team);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to join team', 500, 'error', $exception);
@@ -143,7 +143,7 @@ class TeamController extends Controller
 
             DB::commit();
 
-            return $this->sendSucccessResponse('Successfully left the team', 200, 'success', $team);
+            return $this->sendSuccessResponse('Successfully left the team', 200, 'success', $team);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to leave team', 500, 'error', $exception);
@@ -178,7 +178,7 @@ class TeamController extends Controller
             ]);
 
             DB::commit();
-            return $this->sendSucccessResponse('Successfully rejoined the team', 200, 'success', $team);
+            return $this->sendSuccessResponse('Successfully rejoined the team', 200, 'success', $team);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to rejoin team', 500, 'error', $exception);
@@ -214,7 +214,7 @@ class TeamController extends Controller
             ]);
 
             DB::commit();
-            return $this->sendSucccessResponse('Successfully activated the player in the team', 200, 'success', $team);
+            return $this->sendSuccessResponse('Successfully activated the player in the team', 200, 'success', $team);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to activate player in team', 500, 'error', $exception);
@@ -251,7 +251,7 @@ class TeamController extends Controller
             ]);
 
             DB::commit();
-            return $this->sendSucccessResponse('Successfully kicked the player from the team', 200, 'success', $team);
+            return $this->sendSuccessResponse('Successfully kicked the player from the team', 200, 'success', $team);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to kick player from team', 500, 'error', $exception);
@@ -290,7 +290,7 @@ class TeamController extends Controller
                 'message' => 'Successfully invited player to the team',
                 'team' => $team,
             ];
-            return $this->sendSucccessResponse('Successfully invited player to the team', 200, 'success', $data);
+            return $this->sendSuccessResponse('Successfully invited player to the team', 200, 'success', $data);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to invite player to team', 500, 'error', $exception);
@@ -323,7 +323,7 @@ class TeamController extends Controller
             ]);
 
             DB::commit();
-            return $this->sendSucccessResponse('Successfully accepted the invite to the team', 200, 'success', $team);
+            return $this->sendSuccessResponse('Successfully accepted the invite to the team', 200, 'success', $team);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to accept invite to team', 500, 'error', $exception);
@@ -350,6 +350,6 @@ class TeamController extends Controller
                 ];
             }),
         ];
-        return $this->sendSucccessResponse('Team Players', 200, 'success', $data);
+        return $this->sendSuccessResponse('Team Players', 200, 'success', $data);
     }
 }

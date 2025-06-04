@@ -7,7 +7,7 @@ use Exception;
 
 trait ResponseAPI
 {
-    public function sendSucccessResponse($message, $statusCode, $status, $data)
+    public function sendSuccessResponse($message, $statusCode, $status, $data)
     {
         return response()->json([
             "status" => $status ?: "success",
@@ -19,7 +19,7 @@ trait ResponseAPI
             JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT // biar format penulisan rapi
         );
     }
-    public function sendSucccessPaginationResponse($message, $statusCode, $status, $data)
+    public function sendSuccessPaginationResponse($message, $statusCode, $status, $data)
     {
         return response()->json([
             "status" => $status ?: "success",

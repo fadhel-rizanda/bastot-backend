@@ -29,9 +29,10 @@ Route::get('/', function () {
     ]);
 });
 
-
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+});
 
 Route::middleware('auth:api')->group(function () {
     Route::get("/user", function () {
@@ -43,8 +44,12 @@ Route::middleware('auth:api')->group(function () {
             ]
         ]);
     })->middleware(isPlayer::class);
-    Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::prefix('auth')->group(function () {
+        Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/profile', [AuthController::class, 'profile']);
+    });
+
     Route::get("/posts", [PostController::class, 'index']);
     Route::get("/posts/detail", [PostController::class, 'show']);
 
@@ -86,3 +91,5 @@ Route::middleware(['auth:api', isCourtOwner::class])->group(function () {
     Route::post("/games/{gameId}/stats/{playerId}", [StatsController::class, 'createStats']);
     Route::put("/games/{gameId}/stats/{playerId}", [StatsController::class, 'updateStats']);
 });
+
+Route::get('/test', [AuthController::class, 'test']);

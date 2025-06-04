@@ -25,7 +25,7 @@ class PlayerController extends Controller
             ];
         });
 
-        return $this->sendSucccessPaginationResponse('My Teams', 200, 'success', $data);
+        return $this->sendSuccessPaginationResponse('My Teams', 200, 'success', $data);
     }
 
     public function myStats(Request $request): JsonResponse
@@ -53,7 +53,7 @@ class PlayerController extends Controller
             ];
         });
 
-        return $this->sendSucccessPaginationResponse('My Stats', 200, 'success', $data);
+        return $this->sendSuccessPaginationResponse('My Stats', 200, 'success', $data);
     }
 
     public function myEducations(Request $request): JsonResponse {
@@ -69,6 +69,6 @@ class PlayerController extends Controller
             ];
         });
 
-        return $this->sendSucccessPaginationResponse('My Educations', 200, 'success', $data);
+        return $this->sendSuccessPaginationResponse('My Educations', 200, 'success', $data);
     }
 }

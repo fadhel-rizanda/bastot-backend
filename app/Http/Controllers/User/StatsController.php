@@ -41,7 +41,7 @@ class StatsController extends Controller
         try {
             $stats = Stats::create($fields);
             DB::commit();
-            return $this->sendSucccessResponse('Stats created successfully', 201, 'success', $stats);
+            return $this->sendSuccessResponse('Stats created successfully', 201, 'success', $stats);
         }catch (\Exception $exception){
         DB::rollBack();
             return $this->sendExceptionResponse('Failed to create stats', 500, 'error', $exception);
@@ -76,7 +76,7 @@ class StatsController extends Controller
             $stats->update($fields);
 
             DB::commit();
-            return $this->sendSucccessResponse('Stats updated successfully', 200, 'success', $stats);
+            return $this->sendSuccessResponse('Stats updated successfully', 200, 'success', $stats);
         }catch (\Exception $exception){
         DB::rollBack();
             return $this->sendExceptionResponse('Failed to update stats', 500, 'error', $exception);
