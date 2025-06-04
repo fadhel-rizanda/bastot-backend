@@ -18,4 +18,12 @@ class Event extends Model
         'start_time',
         'end_time',
     ];
+
+    public function community(){
+        return $this->belongsTo(Community::class);
+    }
+
+    public function tags(){
+        return $this->belongsToMany(Tag::class, 'event_tag', 'event_id', 'tag_id');
+    }
 }

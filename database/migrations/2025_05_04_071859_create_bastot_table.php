@@ -13,28 +13,29 @@ return new class extends Migration {
         //        general
         Schema::create('roles', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->string('name');
+            $table->string('name')->unique()->nullable(false);
             $table->text('description')->unique();
             $table->string('color')->nullable();
             $table->timestamps();
         });
 
         Schema::create('statuses', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->string('label');
+            $table->string('id')->primary();
+            $table->string('name')->unique()->nullable(false);
+            $table->text('description')->unique();
             $table->string('color')->nullable();
             $table->timestamps();
         });
 
         Schema::create('tags', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable(false);
+            $table->string('id')->primary();
+            $table->string('name')->unique()->nullable(false);
             $table->text('description')->nullable(false);
             $table->string('color')->nullable();
             $table->timestamps();
         });
 
+//        content
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
@@ -157,9 +158,8 @@ return new class extends Migration {
         });
 
         Schema::create('locations', function (Blueprint $table) {
-            $table->id();
+            $table->integer('id')->primary();
             $table->string('name');
-            $table->integer('place_id')->unique()->nullable(false);
             $table->string('residential')->nullable(false);
             $table->string('village')->nullable(false);
             $table->string('city')->nullable(false);
@@ -167,7 +167,7 @@ return new class extends Migration {
             $table->string('region')->nullable(false);
             $table->string('country')->nullable(false);
             $table->string('country_code')->nullable(false);
-            $table->string('postal_code')->nullable(false);
+            $table->string('postcode')->nullable(false);
             $table->timestamps();
         });
 
@@ -186,7 +186,7 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        Schema::create('career_opportunity_application', function (Blueprint $table) {
+        Schema::create('applicants', function (Blueprint $table) {
             $table->id();
             $table->foreignId('career_opportunity_id')->constrained('career_opportunity')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
@@ -198,16 +198,18 @@ return new class extends Migration {
         Schema::create('games', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable(false);
-            $table->text('description')->nullable(false)->unique();
+            $table->text('description')->nullable(false);
             $table->foreignId('court_id')->constrained('courts')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('home_team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('away_team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
         });
 
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable(false);
+            $table->string('name')->nullable(false)->unique();
             $table->string('logo')->nullable();
+            $table->foreignId('team_owner_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });
 
@@ -216,25 +218,38 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('role_id')->constrained('roles')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('status_id')->constrained('statuses')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->text('notes')->nullable();
             $table->timestamps();
+            $table->unique(['user_id', 'team_id']);
+            $table->unique(['team_id', 'role_id']);
         });
 
-        Schema::create('game_stats', function (Blueprint $table) {
+        Schema::create('stats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('game_id')->constrained('games')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->integer('minutes')->nullable(false);
             $table->integer('points')->nullable(false);
             $table->integer('rebounds')->nullable(false);
             $table->integer('assists')->nullable(false);
             $table->integer('steals')->nullable(false);
             $table->integer('blocks')->nullable(false);
             $table->integer('turnovers')->nullable(false);
+            $table->integer('3pm')->nullable(false);
+            $table->integer('3pa')->nullable(false);
+            $table->integer('2pm')->nullable(false);
+            $table->integer('2pa')->nullable(false);
+            $table->integer('ftm')->nullable(false);
+            $table->integer('fta')->nullable(false);
+            $table->text('notes')->nullable();
+            $table->unique(["user_id", "game_id"]);
             $table->timestamps();
         });
 
         Schema::create('highlights', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('stat_id')->constrained('game_stats')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('stat_id')->constrained('stats')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('content')->nullable(false);
             $table->string('type')->nullable(false);
         });
@@ -259,11 +274,48 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        Schema::create('user_training_session', function (Blueprint $table) {
+        Schema::create('user_workout_plan', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('workout_plan_id')->constrained('workout_plan')->cascadeOnUpdate()->cascadeOnDelete();
             $table->decimal('progress')->default(0.0);
+            $table->timestamps();
+        });
+
+        Schema::create('user_education', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('school_id')->constrained('schools')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->string('degree')->nullable(false);
+            $table->string('grade')->nullable(false);
+            $table->text('activities')->nullable();
+            $table->date('start_date')->nullable(false);
+            $table->date('end_date')->nullable(false);
+            $table->timestamps();
+        });
+
+        Schema::create('schools', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->nullable(false);
+            $table->text('description')->nullable();
+            $table->text('additional_link')->nullable();
+            $table->string('address')->nullable(false);
+            $table->decimal('latitude')->nullable(false);
+            $table->decimal('longitude')->nullable();
+            $table->foreignId('location_id')->constrained('locations')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
+        });
+
+        Schema::create('achievements', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->string('title')->nullable(false);
+            $table->text('description')->nullable();
+            $table->string('image')->nullable();
+            $table->text('additional_link')->nullable();
+            $table->string('type')->nullable(false); // acd/nonacd
+            $table->date('issue_date')->nullable(false);
+            $table->date('expiration_date')->nullable();
             $table->timestamps();
         });
 
@@ -333,15 +385,14 @@ return new class extends Migration {
         Schema::dropIfExists('reservations');
         Schema::dropIfExists('locations');
         Schema::dropIfExists('career_opportunity');
-        Schema::dropIfExists('career_opportunity_application');
+        Schema::dropIfExists('applicants');
         Schema::dropIfExists('games');
         Schema::dropIfExists('teams');
         Schema::dropIfExists('user_team');
-        Schema::dropIfExists('game_stats');
+        Schema::dropIfExists('stats');
         Schema::dropIfExists('highlights');
         Schema::dropIfExists('workout_plan');
         Schema::dropIfExists('training_session');
-        Schema::dropIfExists('user_training_session');
         Schema::dropIfExists('roles');
         Schema::dropIfExists('statuses');
         Schema::dropIfExists('tags');
@@ -354,5 +405,8 @@ return new class extends Migration {
         Schema::dropIfExists('tournament_tag');
         Schema::dropIfExists('workout_plan_tag');
         Schema::dropIfExists('training_session_tag');
+        Schema::dropIfExists('user_education');
+        Schema::dropIfExists('achievements');
+        Schema::dropIfExists('schools');
     }
 };

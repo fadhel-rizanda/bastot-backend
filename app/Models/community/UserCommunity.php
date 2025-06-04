@@ -12,4 +12,12 @@ class UserCommunity extends Model
         'community_id',
         'role_id',
     ];
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
+
+    public function community(){
+        return $this->belongsTo(Community::class);
+    }
 }

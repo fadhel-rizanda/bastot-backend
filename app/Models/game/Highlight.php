@@ -12,4 +12,8 @@ class Highlight extends Model
         'content',
         'type'
     ];
+
+    public function stat(){
+        return $this->belongsTo(Stats::class);
+    }
 }

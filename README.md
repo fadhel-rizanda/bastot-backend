@@ -114,3 +114,9 @@ cp .env.example .env
 ```
 to be discussed...
 https://app.diagrams.net/#G1VCXwEQlDYPoBscY-hq9u9IHJlXEPbYM-#%7B%22pageId%22%3A%223gLzajpsw-CqP6qquiOM%22%7D
+
+
+| Expression                   | Type          | Use Case                  |
+| ---------------------------- | ------------- | ------------------------- |
+| `$team->userTeam`            | Collection    | For looping, viewing data |
+| `$team->userTeam()->where()` | Query Builder | For database queries      |

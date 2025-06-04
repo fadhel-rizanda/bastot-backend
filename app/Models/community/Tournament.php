@@ -2,6 +2,8 @@
 
 namespace App\Models\community;
 
+use App\Models\game\Game;
+use App\Models\game\TournamentGame;
 use Illuminate\Database\Eloquent\Model;
 
 class Tournament extends Model
@@ -11,4 +13,34 @@ class Tournament extends Model
         'event_id',
         'court_id'
     ];
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
+
+    public function tournamentGames()
+    {
+        return $this->hasMany(TournamentGame::class);
+    }
+
+    public function court()
+    {
+        return $this->belongsTo(Court::class);
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'tournament_tag', 'tournament_id', 'tag_id');
+    }
+
+//    not sure if this is correct
+//    public function community()
+//    {
+//        return $this->belongsTo(Community::class);
+//    }
+
+    public function games(){
+        return $this->belongsToMany(Game::class, 'tournament_game', 'tournament_id', 'game_id');
+    }
 }

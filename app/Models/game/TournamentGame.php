@@ -12,4 +12,14 @@ class TournamentGame extends Model
         'game_id',
         'round'
     ];
+
+    public function tournament()
+    {
+        return $this->belongsTo(Tournament::class);
+    }
+
+    public function game()
+    {
+        return $this->belongsTo(Game::class);
+    }
 }

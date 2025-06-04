@@ -2,6 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\career\Achievement;
+use App\Models\career\Applicant;
+use App\Models\career\CareerOpportunity;
+use App\Models\career\School;
+use App\Models\career\UserEducation;
+use App\Models\community\UserCommunity;
+use App\Models\court\Reservation;
+use App\Models\game\Stats;
+use App\Models\game\UserTeam;
+use App\Models\train\UserWorkoutPlan;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -49,7 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    // UUID 
+    // UUID
     // protected static function boot()
     // {
     //     parent::boot();
@@ -64,5 +74,54 @@ class User extends Authenticatable implements MustVerifyEmail
     public function role()
     {
         return $this->hasOne(Role::class, 'id', 'role_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function userCommunity()
+    {
+        return $this->hasMany(UserCommunity::class);
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    public function careerOpportunities()
+    {
+        return $this->hasMany(CareerOpportunity::class);
+    }
+
+    public function applications(){
+        return $this->hasMany(Applicant::class);
+    }
+
+    public function userTeam()
+    {
+        return $this->hasMany(UserTeam::class);
+    }
+
+    public function stats(){
+        return $this->hasMany(Stats::class);
+    }
+
+    public function userWorkoutPlan(){
+        return $this->hasMany(UserWorkoutPlan::class);
+    }
+
+    public function achievements(){
+        return $this->hasMany(Achievement::class);
+    }
+
+    public function educations(){
+        return $this->hasMany(UserEducation::class);
+    }
+
+    public function schools(){
+        return $this->hasManyThrough(UserEducation::class, School::class);
     }
 }

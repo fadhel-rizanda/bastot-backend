@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\community\Event;
+use App\Models\court\Court;
 use Illuminate\Database\Eloquent\Model;
 
 class Location extends Model
 {
     protected $table = 'locations';
     protected $fillable = [
+        'id',
         'name',
-        'place_id',
         'residential',
         'village',
         'city',
@@ -17,6 +19,14 @@ class Location extends Model
         'region',
         'country',
         'country_code',
-        'postal_code',
+        'postcode',
     ];
+
+    public function courts(){
+        return $this->hasMany(Court::class);
+    }
+
+    public function events(){
+        return $this->hasMany(Event::class);
+    }
 }
