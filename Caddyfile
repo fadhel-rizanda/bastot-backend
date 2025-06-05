@@ -1,0 +1,22 @@
+{
+    frankenphp
+    auto_https off
+}
+
+:80 {
+    root * public
+    php_server
+
+    try_files {path} {path}/ /index.php?{query}
+
+    header {
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Methods GET, POST, PUT, DELETE, OPTIONS
+        Access-Control-Allow-Headers Content-Type, Authorization
+    }
+
+    @options method OPTIONS
+    respond @options 204
+
+    encode gzip
+}

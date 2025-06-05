@@ -24,9 +24,9 @@ use \App\Http\Controllers\User\GameController;
 
 Route::get('/', function () {
     return response()->json([
-        "status" => "success",
+        "status" => "ok",
         "message" => "Selamat datang di aplikasi bastot"
-    ]);
+    ], 200);
 });
 
 Route::prefix('auth')->group(function () {

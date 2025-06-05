@@ -180,24 +180,32 @@ class AuthController extends Controller
 
     public function refreshToken(Request $request)
     {
-        $request->user()->tokens()->delete();
         $user = auth()->user();
+        $request->user()->tokens()->revoke();
+
+        $tokenResult = $user->createToken('API Token');
+        $token = $tokenResult->token;
+        $token->expires_at = now()->addHours(1);
+        $token->save();
 
         $data = [
-            "user" => [
-                "name" => $user->name,
-                "email" => $user->email,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role ?? 'user',
             ],
-            "token" => $request->user()->createToken('API Token')->accessToken,
-            "token_type" => "Bearer",
-            "message" => "Refresh token successfully"
+            'access_token' => $tokenResult->accessToken,
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+            'expires_at' => $token->expires_at->toISOString(),
         ];
 
         return $this->sendSuccessResponse(
-            $data,
-            null,
             "Register successfully",
-            "",
+            null,
+            null,
+            $data,
         );
     }
 
