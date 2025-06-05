@@ -3,6 +3,13 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
+        command: frankenphp run
+        healthcheck:
+            test: [ "CMD-SHELL", "curl -fs vhttp://localhost/api/health || exit 1" ]
+            interval: 30s
+            timeout: 5s
+            start_period: 10s
+            retries: 3
         volumes:
             - .:/app
         ports:
@@ -11,6 +18,9 @@ services:
             - APP_ENV=local
             - APP_DEBUG=true
             - LOG_CHANNEL=stack
+            - REDIS_HOST=redis          # Add this
+            - REDIS_PORT=6379           # Add this
+            - REDIS_PASSWORD=null       # Add this
         depends_on:
             - redis
         networks:

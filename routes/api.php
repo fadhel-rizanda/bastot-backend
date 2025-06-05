@@ -22,6 +22,9 @@ use \App\Http\Controllers\User\GameController;
 //     return $request->user();
 // })->middleware('auth:api');
 
+Route::get('/health', fn () => response()->json(['status' => 'ok']));
+
+
 Route::get('/', function () {
     return response()->json([
         "status" => "ok",

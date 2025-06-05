@@ -78,15 +78,12 @@ RUN chown -R www-data:www-data /app && \
 # Expose ports
 EXPOSE 80 443
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/api/health || exit 1
-
 # Copy Caddyfile ke lokasi default
 COPY Caddyfile /etc/caddy/Caddyfile
 
 # Jalankan FrankenPHP (menggantikan Caddy)
-CMD ["frankenphp", "-c", "/etc/caddy/Caddyfile"]
+#CMD ["frankenphp", "-c", "/etc/caddy/Caddyfile"]
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
 
 
 # docker run -p 8000:80 laravel-backend-api frankenphp run
