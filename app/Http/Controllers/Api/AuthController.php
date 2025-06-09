@@ -7,16 +7,32 @@ use App\Models\User;
 use App\Traits\ResponseAPI;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Laravel\Passport\Token;
+use Laravel\Passport\TokenRepository;
+use Laravel\Passport\RefreshTokenRepository;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
     use ResponseAPI;
+
+    protected $tokenRepository;
+    protected $refreshTokenRepository;
+
+    public function __construct(
+        TokenRepository        $tokenRepository,
+        RefreshTokenRepository $refreshTokenRepository
+    )
+    {
+        $this->tokenRepository = $tokenRepository;
+        $this->refreshTokenRepository = $refreshTokenRepository;
+    }
 
     public function register(Request $request)
     {
@@ -27,6 +43,7 @@ class AuthController extends Controller
                 "email" => "required|string|unique:users,email",
                 "password" => "required|string|min:8",
                 "role" => "required|string|in:SUPER_ADMIN,PLAYER,CAREER_PROVIDER,COURT_OWNER",
+                "profile_picture" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048",
             ]);
 
             if ($fields["role"] == "CAREER_PROVIDER" && str_contains($fields["role"], "CAREER_PROVIDER")) {
@@ -36,36 +53,24 @@ class AuthController extends Controller
                 ], 401);
             }
 
+            if ($request->hasFile('profile_picture')) {
+                $file = $request->file('profile_picture');
+                $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('images/profile', $fileName, 'public');
+                $fields['profile_picture'] = $path;
+            } else {
+                $fields['profile_picture'] = null;
+            }
+
             $user = User::create([
                 'name' => $fields["name"],
                 'email' => $fields["email"],
                 'password' => bcrypt($fields["password"]),
                 'role_id' => $fields["role"],
+                'profile_picture' => $fields['profile_picture'],
             ]);
 
-            $tokenResult = $user->createToken('API Token');
-            $token = $tokenResult->token;
-            $token->expires_at = now()->addHours(1);
-            $token->save();
-
-            $refreshToken = $user->createToken('Refresh Token');
-            $refreshTokenObj = $refreshToken->token;
-            $refreshTokenObj->expires_at = now()->addDays(30);
-            $refreshTokenObj->save();
-
-            $data = [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role ?? 'user',
-                ],
-                'access_token' => $tokenResult->accessToken,
-                'refresh_token' => $refreshToken->accessToken,
-                'token_type' => 'Bearer',
-                'expires_in' => 3600,
-                'expires_at' => $token->expires_at->toISOString(),
-            ];
+            $data = $this->createTokenAndRefreshToken($user);
 
             DB::commit(); // REDIS MSH ERROR NANTI PINDAHIN KEBAWAH REDIS
 
@@ -73,10 +78,10 @@ class AuthController extends Controller
             event(new Registered($user));
 
             return $this->sendSuccessResponse(
-                $data,
-                201,
                 "Register successfully",
-                "",
+                201,
+                null,
+                $data,
             );
         } catch (ValidationException $e) {
             DB::rollBack();
@@ -101,7 +106,7 @@ class AuthController extends Controller
 
             $user = User::where('email', $request->email)->first();
             if (!$user) {
-                return $this->sendErrorResponse('User notfound', 404, null, null);
+                return $this->sendErrorResponse('User not found', 404, null, null);
             }
 
             if (!Hash::check($request->password, $user->password)) {
@@ -111,29 +116,7 @@ class AuthController extends Controller
                 ], 401);
             }
 
-            $tokenResult = $user->createToken('API Token');
-            $token = $tokenResult->token;
-            $token->expires_at = now()->addHours(1);
-            $token->save();
-
-            $refreshToken = $user->createToken('Refresh Token');
-            $refreshTokenObj = $refreshToken->token;
-            $refreshTokenObj->expires_at = now()->addDays(30);
-            $refreshTokenObj->save();
-
-            $data = [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role ?? 'user',
-                ],
-                'access_token' => $tokenResult->accessToken,
-                'refresh_token' => $refreshToken->accessToken,
-                'token_type' => 'Bearer',
-                'expires_in' => 3600,
-                'expires_at' => $token->expires_at->toISOString(),
-            ];
+            $data = $this->createTokenAndRefreshToken($user);
 
 
             //            $user = Redis::get("users:{$request->email}") || Redis::set("users:{$request->email}", 60, function() use ($request) {
@@ -166,38 +149,93 @@ class AuthController extends Controller
     {
         try {
             $request->user()->token()->revoke();
+            $this->tokenRepository->revokeAccessToken($request->user()->token()->id);
+            $this->refreshTokenRepository->revokeRefreshTokensByAccessTokenId($request->user()->token()->id);
             return $this->sendSuccessResponse(
-                null,
+                "Logout successfully",
                 //            204, tidak akan mengembalikan content
                 200,
-                "Logout successfully",
+                null,
                 null
             );
-        }catch (ValidationException $e) {
+        } catch (ValidationException $e) {
             return $this->sendExceptionResponse(null, 500, 'Logout fail', $e);
         }
     }
 
+    public function logoutAll(Request $request)
+    {
+        $user = $request->user();
+
+        $user->tokens->each(function ($token) {
+            $token->revoke();
+            $this->tokenRepository->revokeAccessToken($token->id);
+            $this->refreshTokenRepository->revokeRefreshTokensByAccessTokenId($token->id);
+        });
+
+        return $this->sendSuccessResponse(
+            'Logged out from all devices',
+            200,
+            null,
+            null
+        );
+    }
+
+
     public function refreshToken(Request $request)
     {
-        $request->user()->tokens()->delete();
-        $user = auth()->user();
+        $validator = Validator::make($request->all(), [
+            'refresh_token' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendErrorResponse($validator->errors(), 422, 'Validation failed', null);
+        }
+
+        $refreshToken = $this->refreshTokenRepository->find($request->refresh_token);
+
+        if (!$refreshToken || $refreshToken->revoked || $refreshToken->expires_at->isPast()) {
+            return $this->sendErrorResponse('Invalid or expired refresh token', 401, 'Unauthorized', null);
+        }
+
+        $token = $refreshToken->accessToken;
+
+        if (!$token || $token->revoked) {
+            return $this->sendErrorResponse('Invalid or expired token', 401, 'Unauthorized', null);
+        }
+
+        $user = $token->user;
+
+        $token->revoke();
+
+        $newTokenResult = $user->createToken('API Token');
+        $newToken = $newTokenResult->token;
+        $newToken->expires_at = now()->addHours(1);
+        $newToken->save();
+
+        $refreshToken->access_token_id = $newToken->id;
+        $refreshToken->save();
 
         $data = [
-            "user" => [
-                "name" => $user->name,
-                "email" => $user->email,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role ?? 'user',
+                'profile_picture' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
             ],
-            "token" => $request->user()->createToken('API Token')->accessToken,
-            "token_type" => "Bearer",
-            "message" => "Refresh token successfully"
+            "access_token" => $newTokenResult->accessToken,
+            'refresh_token' => $refreshToken->id,
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+            'expires_at' => $token->expires_at->toISOString(),
         ];
 
         return $this->sendSuccessResponse(
-            $data,
+            "Token refreshed successfully",
+            200,
             null,
-            "Register successfully",
-            "",
+            $data,
         );
     }
 
@@ -213,6 +251,7 @@ class AuthController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'role' => $user->role ?? 'user',
+                    'profile_picture' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
                 ]
@@ -221,6 +260,46 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to get profile'
+            ], 500);
+        }
+    }
+
+    public function updateProfile(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $fields = $request->validate([
+                'name' => 'sometimes|required|string|max:255',
+                'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
+                'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            if ($request->hasFile('profile_picture')) {
+                $file = $request->file('profile_picture');
+                $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('images/profile', $fileName, 'public');
+                $fields['profile_picture'] = $path;
+            }
+
+            $user->update($fields);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully',
+                'data' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role ?? 'user',
+                    'profile_picture' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
+                    'updated_at' => $user->updated_at,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                null,
+                'message' => 'Failed to update profile',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -245,5 +324,41 @@ class AuthController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function createTokenAndRefreshToken($user): array
+    {
+        $tokenResult = $user->createToken('API Token');
+        $token = $tokenResult->token;
+        $token->expires_at = now()->addHours(1);
+        $token->save();
+
+        $refreshToken = $this->createRefreshToken($token);
+
+        $data = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role ?? 'user',
+                'profile_picture' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
+            ],
+            'access_token' => $tokenResult->accessToken,
+            'refresh_token' => $refreshToken->id,
+            'token_type' => 'Bearer',
+            'expires_in' => 3600,
+            'expires_at' => $token->expires_at->toISOString(),
+        ];
+        return $data;
+    }
+
+    private function createRefreshToken($accessToken)
+    {
+        return $this->refreshTokenRepository->create([
+            'id' => Str::uuid()->toString(),
+            'access_token_id' => $accessToken->id,
+            'revoked' => false,
+            'expires_at' => now()->addDays(30),
+        ]);
     }
 }

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class CourtOwnerController extends Controller
 {
@@ -44,7 +45,12 @@ class CourtOwnerController extends Controller
         DB::beginTransaction();
         try {
             if ($request->hasFile('profile_picture')) {
-                $fields['profile_picture'] = Storage::disk('public')->put('images/court', $request->file('image'));
+                $file = $request->file('profile_picture');
+                $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('images/court', $fileName, 'public');
+                $fields['profile_picture'] = $path;
+            } else {
+                $fields['profile_picture'] = null;
             }
 
             if (!isset($fields['location_id'])){
