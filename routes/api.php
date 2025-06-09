@@ -22,6 +22,8 @@ use \App\Http\Controllers\User\GameController;
 //     return $request->user();
 // })->middleware('auth:api');
 
+Route::post('/ask-gemini', [PostController::class, 'askGemini']);
+
 Route::get('/', function () {
     return response()->json([
         "status" => "success",
