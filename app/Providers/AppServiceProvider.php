@@ -37,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
             return config('app.FRONTEND_URL') . "?verification_url=" . $verificationUrl;
         });
 
+
+//        Passport::routes();
+
         Passport::tokensExpireIn(now()->addHour());
         Passport::refreshTokensExpireIn(now()->addDays(30));
         Passport::personalAccessTokensExpireIn(now()->addHour());

@@ -47,7 +47,9 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
         Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/logout-all', [AuthController::class, 'logoutAll']);
         Route::get('/profile', [AuthController::class, 'profile']);
+        Route::post('/update-profile', [AuthController::class, 'updateProfile']);
     });
 
     Route::get("/posts", [PostController::class, 'index']);
