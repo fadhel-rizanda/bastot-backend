@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\community\Community;
 use App\Models\community\Event;
 use App\Models\community\Tournament;
+use App\Models\game\Game;
 use App\Models\train\TrainingSession;
 use App\Models\train\WorkoutPlan;
 use Illuminate\Database\Eloquent\Model;
@@ -13,10 +14,14 @@ class Tag extends Model
 {
     protected $table = 'tags';
     protected $fillable = [
+        'id',
         'name',
         'description',
         'color',
+        'type'
     ];
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     public function communities()
     {

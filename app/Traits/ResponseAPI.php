@@ -19,19 +19,19 @@ trait ResponseAPI
             JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT // biar format penulisan rapi
         );
     }
-    public function sendSuccessPaginationResponse($message, $statusCode, $status, $data)
+    public function sendSuccessPaginationResponse($message, $statusCode, $status, $data, $pagination)
     {
         return response()->json([
             "status" => $status ?: "success",
-            "data" => $data->items(),
+            "data" => $data ?: ($pagination->items() ?: []),
             'message' => $message,
-            'current_page' => $data->currentPage(),
-            'total' => $data->total(),
-            'per_page' => $data->perPage(),
-            'next_page_url' => $data->nextPageUrl(),
-            'prev_page_url' => $data->previousPageUrl(),
-            'first_page_url' => $data->url(1),
-            'last_page_url' => $data->url($data->lastPage()),
+            'current_page' => $pagination->currentPage(),
+            'total' => $pagination->total(),
+            'per_page' => $pagination->perPage(),
+            'next_page_url' => $pagination->nextPageUrl(),
+            'prev_page_url' => $pagination->previousPageUrl(),
+            'first_page_url' => $pagination->url(1),
+            'last_page_url' => $pagination->url($pagination->lastPage()),
         ],
             $statusCode ?: 200,
             [],

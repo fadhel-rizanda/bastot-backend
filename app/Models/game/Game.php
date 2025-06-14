@@ -3,6 +3,8 @@
 namespace App\Models\game;
 
 use App\Models\court\Court;
+use App\Models\Status;
+use App\Models\Tag;
 use Illuminate\Database\Eloquent\Model;
 
 class Game extends Model
@@ -13,8 +15,23 @@ class Game extends Model
         'description',
         'court_id',
         'home_team_id',
-        'away_team_id'
+        'away_team_id',
+        'game_time',
+        'home_score',
+        'away_score',
+        'status_id',
+        'tag_id'
     ];
+
+    public function tag()
+    {
+        return $this->belongsTo(Tag::class);
+    }
+
+    public function status()
+    {
+        return $this->belongsTo(Status::class, 'status_id', 'id');
+    }
 
     public function tournamentGame()
     {

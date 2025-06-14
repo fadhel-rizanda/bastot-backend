@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\User;
 use App\Traits\ResponseAPI;
 use Illuminate\Auth\Events\Registered;
@@ -41,6 +42,7 @@ class AuthController extends Controller
             $fields = $request->validate([
                 "name" => "required|string",
                 "email" => "required|string|unique:users,email",
+                'phone' => "nullable|string|unique:users,phone",
                 "password" => "required|string|min:8",
                 "role" => "required|string|in:SUPER_ADMIN,PLAYER,CAREER_PROVIDER,COURT_OWNER",
                 "profile_picture" => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048",
@@ -65,6 +67,7 @@ class AuthController extends Controller
             $user = User::create([
                 'name' => $fields["name"],
                 'email' => $fields["email"],
+                'phone' => $fields['phone'] ?? null,
                 'password' => bcrypt($fields["password"]),
                 'role_id' => $fields["role"],
                 'profile_picture' => $fields['profile_picture'],
@@ -221,6 +224,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'phone' => $user->phone,
                 'role' => $user->role ?? 'user',
                 'profile_picture' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
             ],
@@ -250,6 +254,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'phone' => $user->phone,
                     'role' => $user->role ?? 'user',
                     'profile_picture' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
                     'created_at' => $user->created_at,
@@ -271,6 +276,7 @@ class AuthController extends Controller
             $fields = $request->validate([
                 'name' => 'sometimes|required|string|max:255',
                 'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
+                'phone' => $user->phone,
                 'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
@@ -290,6 +296,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'phone' => $user->phone,
                     'role' => $user->role ?? 'user',
                     'profile_picture' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
                     'updated_at' => $user->updated_at,
@@ -340,6 +347,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'phone' => $user->phone,
                 'role' => $user->role ?? 'user',
                 'profile_picture' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
             ],
@@ -360,5 +368,21 @@ class AuthController extends Controller
             'revoked' => false,
             'expires_at' => now()->addDays(30),
         ]);
+    }
+
+    public function roles(Request $request)
+    {
+        $data = [];
+        if(!$request){
+            $data = Role::all();
+        }
+        else{
+            $data = Role::where('type', $request->type)->get();
+        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Roles retrieved successfully',
+            'data' => $data
+        ], 200);
     }
 }

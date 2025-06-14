@@ -18,6 +18,7 @@ class PlayerController extends Controller
         $data = $teams->through(function ($team) { // through adalah map untuk mengambil data dari pagination tanpa merusak metadatanya
             return [
                 'id' => $team->team_id,
+                'initial' => $team->team->initial ?? null,
                 'name' => $team->team->name ?? null,
                 'logo' => $team->team->logo ?? null,
                 'role' => $team->role_id ?? null,
@@ -25,7 +26,7 @@ class PlayerController extends Controller
             ];
         });
 
-        return $this->sendSuccessPaginationResponse('My Teams', 200, 'success', $data);
+        return $this->sendSuccessPaginationResponse('My Teams', 200, 'success', null, $data);
     }
 
     public function myStats(Request $request): JsonResponse
@@ -53,7 +54,7 @@ class PlayerController extends Controller
             ];
         });
 
-        return $this->sendSuccessPaginationResponse('My Stats', 200, 'success', $data);
+        return $this->sendSuccessPaginationResponse('My Stats', 200, 'success', null, $data);
     }
 
     public function myEducations(Request $request): JsonResponse {
@@ -69,6 +70,6 @@ class PlayerController extends Controller
             ];
         });
 
-        return $this->sendSuccessPaginationResponse('My Educations', 200, 'success', $data);
+        return $this->sendSuccessPaginationResponse('My Educations', 200, 'success', null, $data);
     }
 }

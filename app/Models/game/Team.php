@@ -10,6 +10,7 @@ class Team extends Model
     protected $table = 'teams';
     protected $fillable =[
         'name',
+        'initial',
         'logo',
         'team_owner_id'
     ];
