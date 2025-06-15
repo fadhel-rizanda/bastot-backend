@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('id')->primary();
             $table->string('name')->unique()->nullable(false);
             $table->text('description')->unique();
+            $table->string('type')->nullable(false); // 'general', 'community', 'team', 'event', 'tournament', 'workout_plan', 'training_session')
             $table->string('color')->nullable();
             $table->timestamps();
         });
@@ -24,6 +25,7 @@ return new class extends Migration {
             $table->string('name')->unique()->nullable(false);
             $table->text('description')->unique();
             $table->string('color')->nullable();
+            $table->string('type')->nullable(false);
             $table->timestamps();
         });
 
@@ -32,6 +34,7 @@ return new class extends Migration {
             $table->string('name')->unique()->nullable(false);
             $table->text('description')->nullable(false);
             $table->string('color')->nullable();
+            $table->string('type')->nullable(false);
             $table->timestamps();
         });
 
@@ -191,7 +194,7 @@ return new class extends Migration {
             $table->foreignId('career_opportunity_id')->constrained('career_opportunity')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('requirements_link')->nullable();
-            $table->foreignId('status_id')->constrained('statuses');
+            $table->foreignId('status_id')->constrained('statuses')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });
 
@@ -202,11 +205,16 @@ return new class extends Migration {
             $table->foreignId('court_id')->constrained('courts')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('home_team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('away_team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamp('game_time')->nullable(false)->default(now());
+            $table->integer('home_score')->default(0);
+            $table->integer('away_score')->default(0);
+            $table->foreignId('status_id')->constrained('statuses')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });
 
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
+            $table->string('initial')->nullable(false)->unique();
             $table->string('name')->nullable(false)->unique();
             $table->string('logo')->nullable();
             $table->foreignId('team_owner_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();

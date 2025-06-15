@@ -12,9 +12,14 @@ class Role extends Model
     protected $fillable = [
         'id',
         'name',
+        'type',
         'description',
         'color'
     ];
+//    biar id ga 0 pas return
+    protected $keyType = 'string';
+    public $incrementing = false;
+
 
     public function user()
     {

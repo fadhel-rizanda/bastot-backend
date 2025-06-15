@@ -22,6 +22,8 @@ use \App\Http\Controllers\User\GameController;
 //     return $request->user();
 // })->middleware('auth:api');
 
+Route::post('/ask-gemini', [PostController::class, 'askGemini']);
+
 Route::get('/', function () {
     return response()->json([
         "status" => "success",
@@ -32,6 +34,7 @@ Route::get('/', function () {
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
 });
 
 Route::middleware('auth:api')->group(function () {
@@ -45,11 +48,12 @@ Route::middleware('auth:api')->group(function () {
         ]);
     })->middleware(isPlayer::class);
     Route::prefix('auth')->group(function () {
-        Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/logout-all', [AuthController::class, 'logoutAll']);
         Route::get('/profile', [AuthController::class, 'profile']);
-        Route::post('/update-profile', [AuthController::class, 'updateProfile']);
+        Route::get('/roles', [AuthController::class, 'roles']);
+        Route::put('/profile', [AuthController::class, 'updateProfile']);
+        Route::post('/delete', [AuthController::class, 'logout']);
     });
 
     Route::get("/posts", [PostController::class, 'index']);
@@ -88,10 +92,13 @@ Route::middleware(['auth:api', isPlayer::class])->group(function () {
 });
 
 Route::middleware(['auth:api', isCourtOwner::class])->group(function () {
+    Route::get("/games-summary",[GameController::class, 'gamesSummary']);
     Route::post("/games",[GameController::class, 'createGame']);
     Route::post("/courts",[CourtOwnerController::class, 'createCourt']);
     Route::post("/games/{gameId}/stats/{playerId}", [StatsController::class, 'createStats']);
     Route::put("/games/{gameId}/stats/{playerId}", [StatsController::class, 'updateStats']);
 });
+
+Route::get('/game/roles', [GameController::class, 'roles'])->middleware('auth:api');
 
 Route::get('/test', [AuthController::class, 'test']);

@@ -7,6 +7,7 @@ use App\Models\game\Game;
 use App\Models\game\Stats;
 use App\Models\game\Team;
 use App\Models\game\UserTeam;
+use App\Models\Role;
 use App\Traits\ResponseAPI;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,51 @@ use Illuminate\Support\Facades\DB;
 class GameController extends Controller
 {
     use ResponseAPI;
+
+    public function roles(){
+        return $this->sendSuccessResponse('Roles retrieved successfully', 200, 'success', Role::where('type', 'BASKETBALL')->get());
+    }
+
+    public function  gamesSummary()
+    {
+        $games = Game::paginate(10);
+        if ($games->isEmpty()) {
+            return $this->sendErrorResponse('No games found', 404, 'error', null);
+        }
+        $data = $games->map(function ($game) {
+            return [
+                'id' => $game->id,
+                'name' => $game->name,
+                'description' => $game->description,
+                'game_time' => $game->game_time,
+                'home_team_score' => $game->home_score,
+                'away_team_score' => $game->away_score,
+                'status' => $game->status ? [
+                    'id' => $game->status_id,
+                    'name' => $game->status->name,
+                    'color' => $game->status->color,
+                ] : null,
+                'court' => $game->court ? [
+                    'id' => $game->court->id,
+                    'name' => $game->court->name,
+                    'address' => $game->court->address,
+                ] : null,
+                'home_team' => $game->homeTeam ? [
+                    'id' => $game->homeTeam->id,
+                    'initial' => $game->homeTeam->initial,
+                    'name' => $game->homeTeam->name,
+                    'logo' => $game->homeTeam->logo,
+                ] : null,
+                'away_team' => $game->awayTeam ? [
+                    'id' => $game->awayTeam->id,
+                    'initial' => $game->awayTeam->initial,
+                    'name' => $game->awayTeam->name,
+                    'logo' => $game->awayTeam->logo,
+                ] : null,
+            ];
+        });
+        return $this->sendSuccessPaginationResponse('Games retrieved successfully', 200, 'success', $data, $games);
+    }
 
     public function createGame(Request $request)
     {
@@ -23,6 +69,10 @@ class GameController extends Controller
             'court_id' => 'required|integer',
             'home_team_id' => 'required|integer',
             'away_team_id' => 'required|integer',
+            'game_time' => 'required|date_format:Y-m-d H:i:s',
+            'home_team_score' => 'integer|nullable',
+            'away_team_score' => 'integer|nullable',
+            'status_id' => 'required|in:SCHEDULED,ongoing,completed,cancelled',
         ]);
 
         DB::beginTransaction();

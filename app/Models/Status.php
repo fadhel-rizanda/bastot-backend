@@ -11,9 +11,12 @@ class Status extends Model
     protected $table = 'statuses';
     protected $fillable = [
         'name',
+        'type',
         'description',
         'color',
     ];
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     public function reservations(){
         return $this->hasMany(Reservation::class, 'status_id', 'id');

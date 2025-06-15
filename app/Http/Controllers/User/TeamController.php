@@ -19,6 +19,7 @@ class TeamController extends Controller
         $data = $teams->through(function ($team) {
             return [
                 'team_id' => $team->id,
+                'initial' => $team->initial,
                 'logo' => $team->logo,
                 'name' => $team->name,
                 'members' => $team->userTeam->count(),
@@ -27,7 +28,7 @@ class TeamController extends Controller
             ];
         });
 
-        return $this->sendSuccessPaginationResponse('Owned Teams', 200, 'success', $data);
+        return $this->sendSuccessPaginationResponse('Owned Teams', 200, 'success', null, $data);
     }
 
     public function detailTeam(Request $request, $teamId): JsonResponse{
@@ -42,6 +43,7 @@ class TeamController extends Controller
         $data = [
             'team_id' => $team->id,
             'owner_id' => $team->team_owner_id,
+            'initial' => $team->initial,
             'logo' => $team->logo,
             'name' => $team->name,
             'members' => $team->userTeam->count(),
@@ -66,6 +68,7 @@ class TeamController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'initial' => 'required|string|max:5|unique:teams,initial',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'role' => 'required|string',
         ]);
@@ -74,6 +77,7 @@ class TeamController extends Controller
         try {
             $team = Team::create([
                 'name' => $request->name,
+                'initial' => $request->initial,
                 'logo' => $request->logo,
                 'team_owner_id' => $userId,
             ]);
