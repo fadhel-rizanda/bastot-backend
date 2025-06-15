@@ -272,11 +272,14 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         try {
+            \Log::info('Request payload:', $request->all());
+            \Log::info('Uploaded file:', ['file' => $request->file('profile_picture')]);
+
             $user = $request->user();
             $fields = $request->validate([
                 'name' => 'sometimes|required|string|max:255',
                 'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
-                'phone' => $user->phone,
+                'phone' => 'nullable|regex:/^[0-9]{10,14}$/',
                 'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
@@ -303,11 +306,8 @@ class AuthController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                null,
-                'message' => 'Failed to update profile',
-                'error' => $e->getMessage()
-            ], 500);
+            \Log::error('Update profile error', ['exception' => $e]);
+            return $this->sendErrorResponse('Failed to update profile', 500, null, $e);
         }
     }
 
@@ -384,5 +384,9 @@ class AuthController extends Controller
             'message' => 'Roles retrieved successfully',
             'data' => $data
         ], 200);
+    }
+
+
+    public function delete(){ //    harusnya pakai flag aja
     }
 }
