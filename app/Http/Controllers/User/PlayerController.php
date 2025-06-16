@@ -39,7 +39,7 @@ class PlayerController extends Controller
                 'game_id' => $stat->game_id,
                 'game_name' => $stat->game->name,
                 'game_description' => $stat->game->description,
-                'court' => $stat->game->court,
+                'court' => $stat->game->field->court,
                 'home_team' => $stat->game->homeTeam ? [
                     'id' => $stat->game->homeTeam->id,
                     'name' => $stat->game->homeTeam->name,
