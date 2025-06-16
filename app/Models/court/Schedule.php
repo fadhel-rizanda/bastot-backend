@@ -8,19 +8,20 @@ class Schedule extends Model
 {
     protected $table = 'schedules';
     protected $fillable = [
-        'court_id',
+        'field_id',
         'start_time',
         'end_time',
-        'price',
+        'price_per_hour',
         'is_available'
     ];
 
-    public function court()
+    public function field()
     {
-        return $this->belongsTo(Court::class);
+        return $this->belongsTo(Field::class);
     }
 
-    public function reservations(){
+    public function reservations()
+    {
         return $this->hasMany(Reservation::class);
     }
 }

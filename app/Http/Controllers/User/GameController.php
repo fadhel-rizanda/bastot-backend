@@ -39,10 +39,10 @@ class GameController extends Controller
                     'name' => $game->status->name,
                     'color' => $game->status->color,
                 ] : null,
-                'court' => $game->court ? [
-                    'id' => $game->court->id,
-                    'name' => $game->court->name,
-                    'address' => $game->court->address,
+                'court' => $game->field ? [
+                    'id' => $game->field->court->id,
+                    'name' => $game->field->court->name,
+                    'address' => $game->field->court->address,
                 ] : null,
                 'home_team' => $game->homeTeam ? [
                     'id' => $game->homeTeam->id,
@@ -66,7 +66,7 @@ class GameController extends Controller
         $fields = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'string',
-            'court_id' => 'required|integer',
+            'field_id' => 'required|integer',
             'home_team_id' => 'required|integer',
             'away_team_id' => 'required|integer',
             'game_time' => 'required|date_format:Y-m-d H:i:s',

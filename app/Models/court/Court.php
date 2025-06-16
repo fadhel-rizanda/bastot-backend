@@ -2,7 +2,6 @@
 
 namespace App\Models\court;
 
-use App\Models\game\Game;
 use App\Models\Location;
 use App\Models\Review;
 use App\Models\User;
@@ -21,21 +20,12 @@ class Court extends Model
         'location_id',
     ];
 
-    public function games()
-    {
-        return $this->hasMany(Game::class);
-    }
-
     public function reviews(){
         return $this->hasMany(Review::class);
     }
 
     public function location(){
         return $this->belongsTo(Location::class);
-    }
-
-    public function schedules(){
-        return $this->hasMany(Schedule::class);
     }
 
     public function owner(){

@@ -95,6 +95,9 @@ Route::middleware(['auth:api', isCourtOwner::class])->group(function () {
     Route::get("/games-summary",[GameController::class, 'gamesSummary']);
     Route::post("/games",[GameController::class, 'createGame']);
     Route::post("/courts",[CourtOwnerController::class, 'createCourt']);
+    Route::post("/fields", [CourtOwnerController::class, 'createField']);
+    Route::post("/schedule", [CourtOwnerController::class, 'createScheduleByList']);
+    Route::post("/reservation", [CourtOwnerController::class, 'createReservations']);
     Route::post("/games/{gameId}/stats/{playerId}", [StatsController::class, 'createStats']);
     Route::put("/games/{gameId}/stats/{playerId}", [StatsController::class, 'updateStats']);
 });

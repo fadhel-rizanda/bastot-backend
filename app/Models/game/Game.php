@@ -3,6 +3,7 @@
 namespace App\Models\game;
 
 use App\Models\court\Court;
+use App\Models\court\Field;
 use App\Models\Status;
 use App\Models\Tag;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ class Game extends Model
     protected $fillable = [
         'name',
         'description',
-        'court_id',
+        'field_id',
         'home_team_id',
         'away_team_id',
         'game_time',
@@ -38,9 +39,9 @@ class Game extends Model
         return $this->hasMany(TournamentGame::class);
     }
 
-    public function court()
+    public function field()
     {
-        return $this->belongsTo(Court::class);
+        return $this->belongsTo(Field::class);
     }
 
     public function teams()

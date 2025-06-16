@@ -142,12 +142,24 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        Schema::create('schedules', function (Blueprint $table) {
+        Schema::create('fields', function (Blueprint $table) {
             $table->id();
             $table->foreignId('court_id')->constrained('courts')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->string('name');
+            $table->string('image')->nullable();
+            $table->decimal('default_price_per_hour')->nullable();
+            $table->boolean('is_available')->default(true);
+
+            $table->timestamps();
+        });
+
+
+        Schema::create('schedules', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('field_id')->constrained('fields')->cascadeOnUpdate()->cascadeOnDelete();
             $table->dateTime('start_time')->nullable(false);
             $table->dateTime('end_time')->nullable(false);
-            $table->decimal('price')->nullable(false);
+            $table->decimal('price_per_hour')->nullable(false);
             $table->boolean('is_available')->default(true);
             $table->timestamps();
         });
@@ -202,7 +214,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name')->nullable(false);
             $table->text('description')->nullable(false);
-            $table->foreignId('court_id')->constrained('courts')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('field_id')->constrained('fields')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('home_team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('away_team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamp('game_time')->nullable(false)->default(now());
@@ -333,6 +345,13 @@ return new class extends Migration {
             $table->foreignId('review_id')->constrained('reviews')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
             $table->primary(['court_id', 'review_id']);
+        });
+
+        Schema::create('field_review', function (Blueprint $table) {
+            $table->foreignId('field_id')->constrained('fields')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('review_id')->constrained('reviews')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
+            $table->primary(['field_id', 'review_id']);
         });
 
         Schema::create('community_review', function (Blueprint $table) {
