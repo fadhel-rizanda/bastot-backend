@@ -262,22 +262,56 @@ class TeamController extends Controller
         }
     }
 
-    public function invitePlayer(Request $request, $teamId, $userId): JsonResponse
+//    public function invitePlayer(Request $request, $teamId, $userId): JsonResponse
+//    {
+//        $fields = $request->validate([
+//            'role' => 'required|string',
+//        ]);
+//        $ownerId = $request->user()->id;
+//        $team = Team::find($teamId);
+//
+////        if ($team->team_owner_id != $ownerId) {
+////            return response()->json([
+////                'message' => 'You cannot invite player to this team',
+////            ], 403);
+////        }
+////        dd($team->userTeam()->exists('user_id', $userId));
+//        if ($team->userTeam()->where('user_id', $userId)->exists()) {
+//            return $this->sendErrorResponse("Player already in the team", 400, 'error', []);
+//
+//        }
+//        if ($team->isFull()) {
+//            return $this->sendErrorResponse("Team is full", 400, 'error', []);
+//        }
+//
+//        DB::beginTransaction();
+//        try {
+//            $team->users()->attach($userId, [
+//                'role_id' => $fields['role'],
+//                'status_id' => 'INVITED',
+//            ]);
+//            DB::commit();
+//            $data = [
+//                'message' => 'Successfully invited player to the team',
+//                'team' => $team,
+//            ];
+//            return $this->sendSuccessResponse('Successfully invited player to the team', 200, 'success', $data);
+//        } catch (\Exception $exception) {
+//            DB::rollBack();
+//            return $this->sendExceptionResponse('Failed to invite player to team', 500, 'error', $exception);
+//        }
+//    }
+//
+    public function invitePlayer(Request $request): JsonResponse
     {
         $fields = $request->validate([
-            'role' => 'required|string',
+            'role_id' => 'required|string',
         ]);
-        $ownerId = $request->user()->id;
-        $team = Team::find($teamId);
+        $team = Team::find($request->team_id);
 
-//        if ($team->team_owner_id != $ownerId) {
-//            return response()->json([
-//                'message' => 'You cannot invite player to this team',
-//            ], 403);
-//        }
-        if ($team->userTeam()->exists('user_id', $userId)) {
-            return $this->sendErrorResponse("Player already in the team", 400, 'error', []);
-
+        $userTeam = $team->userTeam()->where('user_id', $request->user_id)->first();
+        if ($userTeam) {
+            return $this->sendErrorResponse("Player already {$userTeam->status_id} to the team", 400, 'error', []);
         }
         if ($team->isFull()) {
             return $this->sendErrorResponse("Team is full", 400, 'error', []);
@@ -285,16 +319,12 @@ class TeamController extends Controller
 
         DB::beginTransaction();
         try {
-            $team->users()->attach($userId, [
-                'role_id' => $fields['role'],
-                'status_id' => 'INVITED',
+            $team->users()->attach($request->user_id, [
+                'role_id' => $fields['role_id'],
+                    'status_id' => 'INVITED',
             ]);
             DB::commit();
-            $data = [
-                'message' => 'Successfully invited player to the team',
-                'team' => $team,
-            ];
-            return $this->sendSuccessResponse('Successfully invited player to the team', 200, 'success', $data);
+            return $this->sendSuccessResponse('Successfully invited player to the team', 200, 'success', $team);
         } catch (\Exception $exception) {
             DB::rollBack();
             return $this->sendExceptionResponse('Failed to invite player to team', 500, 'error', $exception);

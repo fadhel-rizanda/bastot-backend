@@ -27,7 +27,7 @@ class Team extends Model
 
     public function isFull()
     {
-        return $this->userTeam()->where('status_id', 'ACTIVE')->count() >= env("MAX_TEAM_SIZE");
+        return $this->userTeam()->where('status_id', 'ACTIVE')->count() >= (env("MAX_TEAM_SIZE") ?? 10);
     }
 
     public function users(){

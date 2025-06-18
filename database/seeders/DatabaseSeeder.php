@@ -75,35 +75,42 @@ class DatabaseSeeder extends Seeder
             'id' => 'ACTIVE',
             'name' => 'Active',
             'description' => 'User is active',
-            'type' => 'AUTH',
+            'type' => 'GENERAL',
         ]);
 
         Status::create([
             'id' => 'INACTIVE',
             'name' => 'Inactive',
             'description' => 'User is inactive',
-            'type' => 'AUTH',
+            'type' => 'GENERAL',
         ]);
 
         Status::create([
             'id' => 'DEACTIVATED',
             'name' => 'Deactivated',
             'description' => 'User is deactivated',
-            'type' => 'AUTH',
+            'type' => 'GENERAL',
         ]);
 
         Status::create([
             'id' => 'BANNED',
             'name' => 'Banned',
             'description' => 'User is banned',
-            'type' => 'AUTH',
+            'type' => 'GENERAL',
         ]);
 
         Status::create([
             'id' => 'PENDING',
             'name' => 'Pending',
             'description' => 'User is pending approval',
-            'type' => 'AUTH',
+            'type' => 'GENERAL',
+        ]);
+
+        Status::create([
+            'id' => 'INVITED',
+            'name' => 'Invited',
+            'description' => 'User is invited',
+            'type' => 'GENERAL',
         ]);
 
         Status::create([

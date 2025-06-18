@@ -90,7 +90,7 @@ class GameController extends Controller
     {
         $game = Game::find($gameId);
         if (!$game) {
-            return $this->sendErrorResponse('Game not found', 404, 'error', null);
+            return $this->sendErrorResponse('Game not found', 400, 'error', null);
         }
 
         $homeTeam = $game->homeTeam->userTeam()->with(['user.stats' => function ($query) use ($gameId) {
