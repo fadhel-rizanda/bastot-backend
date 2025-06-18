@@ -17,13 +17,18 @@ class isTeamOwner
     public function handle(Request $request, Closure $next): Response
     {
         $userId = $request->user()->id;
-        $teamId = $request->route("teamId");
+        $teamId = $request->route("teamId") ?? $request->team_id;
         $team = Team::find($teamId);
+
         if (!$team || $team->team_owner_id != $userId) {
             return response()->json([
                 'message' => 'You must be the team owner to access this resource.',
+                "user" => $userId,
+                "team" => $teamId,
+                "role" => $request->role_id
             ], 403);
         }
+
         return $next($request);
     }
 }

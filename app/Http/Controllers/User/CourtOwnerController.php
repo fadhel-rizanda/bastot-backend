@@ -170,6 +170,7 @@ class CourtOwnerController extends Controller
             $validator = Validator::make($request->all(), [
                 'list' => 'required|array|min:1',
                 'list.*.schedule_id' => 'required|numeric',
+                'list.*.game_id' => 'nullable|numeric',
             ]);
 
             if ($validator->fails()) {
@@ -178,6 +179,7 @@ class CourtOwnerController extends Controller
 
             $user = $request->user();
             $reservations = [];
+            $totalCost = 0;
 
             DB::beginTransaction();
             foreach ($request->list as $item) {
@@ -200,18 +202,26 @@ class CourtOwnerController extends Controller
                 $reservation = Reservation::create([
                     'schedule_id' => $item['schedule_id'],
                     'user_id' => $user->id,
-                    'status_id' => 'SCHEDULED'
+                    'status_id' => 'SCHEDULED',
+                    'game_id' => $item['game_id'] ?? null,
                 ]);
 
                 $reservations[] = $reservation;
+                $totalCost += $reservation->schedule->price_per_hour ?? 0;
             }
 
             DB::commit();
+
+            $data = [
+                'reservation' => $reservations,
+                'total_cost' => $totalCost
+            ];
+
             return $this->sendSuccessResponse(
                 "Reservations created successfully",
                 201,
                 null,
-                $reservations
+                $data
             );
         } catch (\Exception $e) {
             DB::rollBack();

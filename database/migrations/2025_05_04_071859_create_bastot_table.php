@@ -162,12 +162,15 @@ return new class extends Migration {
             $table->decimal('price_per_hour')->nullable(false);
             $table->boolean('is_available')->default(true);
             $table->timestamps();
+
+            $table->unique(['field_id', 'start_time']);
         });
 
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('schedule_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('game_id')->nullable()->constrained('games')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('status_id')->constrained('statuses');
             $table->timestamps();
         });

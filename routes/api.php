@@ -13,6 +13,7 @@ use \App\Http\Controllers\User\CourtOwnerController;
 use \App\Http\Controllers\User\PlayerController;
 use \App\Http\Controllers\User\StatsController;
 use \App\Http\Controllers\User\GameController;
+use \App\Http\Controllers\User\AllController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -59,6 +60,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get("/posts", [PostController::class, 'index']);
     Route::get("/posts/detail", [PostController::class, 'show']);
 
+    Route::prefix('all')->group(function () {
+        Route::get("/users", [AllController::class, 'users']);
+        Route::get('/roles', [AllController::class, 'roles']);
+        Route::get('/teams', [AllController::class, 'teams']);
+    });
+
     Route::get("/games/{gameId}/stats", [GameController::class, 'getStats']);
     Route::get("/games/{gameId}/stats/{userId}", [GameController::class, 'getUserStats']);
 });
@@ -85,6 +92,7 @@ Route::middleware(['auth:api', isPlayer::class])->group(function () {
     Route::post("/teams/{teamId}/rejoin", [TeamController::class, 'rejoin']);
     Route::post("/teams/{teamId}/activate/{userId}", [TeamController::class, 'activatePlayer'])->middleware(isTeamOwner::class);
     Route::post("/teams/{teamId}/invite/{userId}", [TeamController::class, 'invitePlayer'])->middleware(isTeamOwner::class);
+    Route::post("/teams/invite", [TeamController::class, 'invitePlayer'])->middleware(isTeamOwner::class);
     Route::post("/teams/{teamId}/accept-invite", [TeamController::class, 'acceptInvite']);
     Route::get("/own-teams", [TeamController::class, 'ownedTeams']);
     Route::get("/detail-teams/{teamId}", [TeamController::class, 'detailTeam']);
