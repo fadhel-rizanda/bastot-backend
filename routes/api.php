@@ -113,3 +113,7 @@ Route::middleware(['auth:api', isCourtOwner::class])->group(function () {
 Route::get('/game/roles', [GameController::class, 'roles'])->middleware('auth:api');
 
 Route::get('/test', [AuthController::class, 'test']);
+Route::prefix('/test')->group(function () {
+   Route::get('/token', [\App\Http\Controllers\DriveController::class, 'token']);
+   Route::post('/store', [\App\Http\Controllers\DriveController::class, 'store']);
+});
