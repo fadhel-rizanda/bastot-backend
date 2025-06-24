@@ -18,7 +18,7 @@ class PostController extends Controller
             'prompt' => 'required|string|max:1000',
         ]);
 
-        $apiKey = env('GEMINI_API_KEY'); // Simpan di .env file
+        $apiKey = env('GEMINI_API_KEY'); // Simpan di .env file, klo null: php artisan config:clear
         $prompt = $request->input('prompt');
         $promptHeader = "You are an assistant for Bastot, a basketball platform that helps players, teams, and fans connect and grow. Answer the following question in a helpful and concise manner: ";
 
