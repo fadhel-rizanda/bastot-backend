@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\Enums\Type;
 use App\Http\Controllers\Controller;
 use App\Models\game\Game;
 use App\Models\game\Stats;
 use App\Models\game\Team;
 use App\Models\game\UserTeam;
+use App\Models\Notification;
 use App\Models\Role;
 use App\Traits\ResponseAPI;
 use Illuminate\Http\Request;
@@ -78,6 +80,37 @@ class GameController extends Controller
         DB::beginTransaction();
         try {
             $game = Game::create($fields);
+
+            Notification::create([
+                'user_id' => $request->user()->id,
+                'type' => Type::GAME,
+                'title' => 'Game Created',
+                'message' => "Game '{$fields['name']}' between Team ID {$fields['home_team_id']} and Team ID {$fields['away_team_id']} has been scheduled.",
+                'data' => [
+                    'game_id' => $game->id,
+                ]
+            ]);
+
+            Notification::create([
+                'user_id' => Team::find($fields['home_team_id'])->team_owner_id,
+                'type' => Type::GAME,
+                'title' => 'Home Game Scheduled',
+                'message' => "Your team is scheduled to play against Team ID {$fields['away_team_id']} at {$fields['game_time']}.",
+                'data' => [
+                    'game_id' => $game->id,
+                ]
+            ]);
+
+            Notification::create([
+                'user_id' => Team::find($fields['away_team_id'])->team_owner_id,
+                'type' => Type::GAME,
+                'title' => 'Away Game Scheduled',
+                'message' => "Your team is scheduled to play against Team ID {$fields['home_team_id']} at {$fields['game_time']}.",
+                'data' => [
+                    'game_id' => $game->id,
+                ]
+            ]);
+
             DB::commit();
             return $this->sendSuccessResponse('Game created successfully', 201, 'success', $game);
         } catch (\Exception $exception) {
