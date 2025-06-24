@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Enums\Type;
 use App\Models\community\Community;
 use App\Models\community\Event;
 use App\Models\community\Tournament;
@@ -22,6 +23,9 @@ class Tag extends Model
     ];
     protected $keyType = 'string';
     public $incrementing = false;
+    protected $casts = [
+        'type' => Type::class,
+    ];
 
     public function communities()
     {

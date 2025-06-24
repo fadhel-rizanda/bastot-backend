@@ -46,6 +46,7 @@ return new class extends Migration {
             $table->text('message')->nullable(false);
             $table->boolean('is_read')->default(false);
             $table->string('color')->nullable();
+            $table->string('type')->nullable(false);
             $table->timestamps();
         });
 

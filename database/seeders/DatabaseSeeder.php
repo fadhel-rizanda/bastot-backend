@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Enums\Type;
 use App\Models\Role;
 use App\Models\Status;
 use App\Models\User;
@@ -19,55 +20,55 @@ class DatabaseSeeder extends Seeder
         Role::create([
             'id' => 'SUPER_ADMIN',
             'name' => 'Super Admin',
-            'type' => 'AUTH',
+            'type' => Type::AUTH,
             'description' => 'Super administrator role with all permissions',
         ]);
         Role::create([
             'id' => 'PLAYER',
             'name' => 'Player',
-            'type' => 'AUTH',
+            'type' => Type::AUTH,
             'description' => 'Player role with limited permissions',
         ]);
         Role::create([
             'id' => 'CAREER_PROVIDER',
             'name' => 'Career Provider',
-            'type' => 'AUTH',
+            'type' => Type::AUTH,
             'description' => 'Career provider role with specific permissions',
         ]);
         Role::create([
             'id' => 'COURT_OWNER',
             'name' => 'Court Owner',
-            'type' => 'AUTH',
+            'type' => Type::AUTH,
             'description' => 'Court owner role with specific permissions',
         ]);
         Role::create([
             'id' => 'PF',
             'name' => 'Power Forward',
-            'type' => 'BASKETBALL',
+            'type' => Type::BASKETBALL,
             'description' => 'Power Forward position in basketball',
         ]);
         Role::create([
             'id' => 'C',
             'name' => 'Center',
-            'type' => 'BASKETBALL',
+            'type' => Type::BASKETBALL,
             'description' => 'Center position in basketball',
         ]);
         Role::create([
             'id' => 'SF',
             'name' => 'Small Forward',
-            'type' => 'BASKETBALL',
+            'type' => Type::BASKETBALL,
             'description' => 'Small Forward position in basketball',
         ]);
         Role::create([
             'id' => 'SG',
             'name' => 'Shooting Guard',
-            'type' => 'BASKETBALL',
+            'type' => Type::BASKETBALL,
             'description' => 'Shooting Guard position in basketball',
         ]);
         Role::create([
             'id' => 'PG',
             'name' => 'Point Guard',
-            'type' => 'BASKETBALL',
+            'type' => Type::BASKETBALL,
             'description' => 'Point Guard position in basketball',
         ]);
 
@@ -75,70 +76,70 @@ class DatabaseSeeder extends Seeder
             'id' => 'ACTIVE',
             'name' => 'Active',
             'description' => 'User is active',
-            'type' => 'GENERAL',
+            'type' => Type::GENERAL,
         ]);
 
         Status::create([
             'id' => 'INACTIVE',
             'name' => 'Inactive',
             'description' => 'User is inactive',
-            'type' => 'GENERAL',
+            'type' => Type::GENERAL,
         ]);
 
         Status::create([
             'id' => 'DEACTIVATED',
             'name' => 'Deactivated',
             'description' => 'User is deactivated',
-            'type' => 'GENERAL',
+            'type' => Type::GENERAL,
         ]);
 
         Status::create([
             'id' => 'BANNED',
             'name' => 'Banned',
             'description' => 'User is banned',
-            'type' => 'GENERAL',
+            'type' => Type::GENERAL,
         ]);
 
         Status::create([
             'id' => 'PENDING',
             'name' => 'Pending',
             'description' => 'User is pending approval',
-            'type' => 'GENERAL',
+            'type' => Type::GENERAL,
         ]);
 
         Status::create([
             'id' => 'INVITED',
             'name' => 'Invited',
             'description' => 'User is invited',
-            'type' => 'GENERAL',
+            'type' => Type::GENERAL,
         ]);
 
         Status::create([
             'id' => 'SCHEDULED',
             'name' => 'Scheduled',
             'description' => 'Game is scheduled',
-            'type' => 'GAME',
+            'type' => Type::GAME,
         ]);
 
         Status::create([
             'id' => 'ONGOING',
             'name' => 'Ongoing',
             'description' => 'Game is ongoing',
-            'type' => 'GAME',
+            'type' => Type::GAME,
         ]);
 
         Status::create([
             'id' => 'COMPLETED',
             'name' => 'Completed',
             'description' => 'Game is completed',
-            'type' => 'GAME',
+            'type' => Type::GAME,
         ]);
 
         Status::create([
             'id' => 'CANCELLED',
             'name' => 'Cancelled',
             'description' => 'Game is cancelled',
-            'type' => 'GAME',
+            'type' => Type::GAME,
         ]);
 
 //        Role::create([

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Enums\Type;
 use App\Models\community\UserCommunity;
 use App\Models\game\UserTeam;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,9 @@ class Role extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $casts = [
+        'type' => Type::class,
+    ];
 
     public function user()
     {

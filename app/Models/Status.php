@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Enums\Type;
 use App\Models\career\Applicant;
 use App\Models\court\Reservation;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,9 @@ class Status extends Model
     ];
     protected $keyType = 'string';
     public $incrementing = false;
+    protected $casts = [
+        'type' => Type::class,
+    ];
 
     public function reservations(){
         return $this->hasMany(Reservation::class, 'status_id', 'id');
