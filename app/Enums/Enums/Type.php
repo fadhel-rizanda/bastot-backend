@@ -8,4 +8,5 @@ enum Type:string
     case AUTH = 'AUTH';
     case BASKETBALL = 'BASKETBALL';
     case GAME = 'GAME';
+    case TEAM = 'TEAM';
 }
