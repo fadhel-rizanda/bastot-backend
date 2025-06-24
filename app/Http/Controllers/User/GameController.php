@@ -86,6 +86,9 @@ class GameController extends Controller
                 'type' => Type::GAME,
                 'title' => 'Game Created',
                 'message' => "Game '{$fields['name']}' between Team ID {$fields['home_team_id']} and Team ID {$fields['away_team_id']} has been scheduled.",
+                'data' => [
+                    'game_id' => $game->id,
+                ]
             ]);
 
             Notification::create([
@@ -93,6 +96,9 @@ class GameController extends Controller
                 'type' => Type::GAME,
                 'title' => 'Home Game Scheduled',
                 'message' => "Your team is scheduled to play against Team ID {$fields['away_team_id']} at {$fields['game_time']}.",
+                'data' => [
+                    'game_id' => $game->id,
+                ]
             ]);
 
             Notification::create([
@@ -100,6 +106,9 @@ class GameController extends Controller
                 'type' => Type::GAME,
                 'title' => 'Away Game Scheduled',
                 'message' => "Your team is scheduled to play against Team ID {$fields['home_team_id']} at {$fields['game_time']}.",
+                'data' => [
+                    'game_id' => $game->id,
+                ]
             ]);
 
             DB::commit();

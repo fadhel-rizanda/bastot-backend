@@ -97,6 +97,9 @@ class TeamController extends Controller
                 'type' => Type::TEAM,
                 'title' => 'Team Created',
                 'message' => "You have successfully created a new team named '{$team->name}' with initial '{$team->initial}'.",
+                'data' => [
+                    'team_id' => $team->id,
+                ]
             ]);
 
             DB::commit();
@@ -130,6 +133,10 @@ class TeamController extends Controller
                 'type' => Type::TEAM,
                 'title' => 'Joined Team',
                 'message' => "You have successfully joined the team '{$team->name}' as {$fields['role']}.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             DB::commit();
@@ -166,6 +173,10 @@ class TeamController extends Controller
                 'type' => Type::TEAM,
                 'title' => 'Left Team',
                 'message' => "You have left the team '{$team->name}'.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             Notification::create([
@@ -173,6 +184,10 @@ class TeamController extends Controller
                 'type' => Type::TEAM,
                 'title' => 'Player Left Team',
                 'message' => "User ID {$userId} has left your team '{$team->name}'.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             DB::commit();
@@ -216,6 +231,10 @@ class TeamController extends Controller
                 'type' => Type::TEAM,
                 'title' => 'Rejoined Team',
                 'message' => "You have successfully rejoined the team '{$team->name}'.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             Notification::create([
@@ -223,6 +242,10 @@ class TeamController extends Controller
                 'type' => Type::TEAM,
                 'title' => 'Player Rejoined',
                 'message' => "User ID {$userId} has rejoined your team '{$team->name}'.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             DB::commit();
@@ -266,6 +289,10 @@ class TeamController extends Controller
                 'type' => Type::GAME,
                 'title' => 'Team Activation',
                 'message' => "You have been reactivated in team {$team->name}.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             Notification::create([
@@ -273,6 +300,10 @@ class TeamController extends Controller
                 'type' => Type::GAME,
                 'title' => 'Team Activation Log',
                 'message' => "You reactivated user ID {$userId} in team {$team->name}.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             DB::commit();
@@ -317,6 +348,10 @@ class TeamController extends Controller
                 'type' => Type::TEAM,
                 'title' => 'Removed from Team',
                 'message' => "You have been removed from the team '{$team->name}' by the team owner.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             Notification::create([
@@ -324,6 +359,10 @@ class TeamController extends Controller
                 'type' => Type::TEAM,
                 'title' => 'Player Removed',
                 'message' => "You have removed a player (User ID: {$userId}) from the team '{$team->name}'.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             DB::commit();
@@ -401,6 +440,10 @@ class TeamController extends Controller
                 'type' => Type::GAME,
                 'title' => 'Team Invitation',
                 'message' => "You have sent an invitation to user ID {$request->user_id} to join team ID {$request->team_id} as {$request->role_id}.",
+                'data' => [
+                    'user_id' => $request->user_id,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             Notification::create([
@@ -408,6 +451,10 @@ class TeamController extends Controller
                 'type' => Type::GAME,
                 'title' => 'Team Invitation',
                 'message' => "You have been invited by user ID {$request->user()->id} to join team ID {$request->team_id} as {$request->role_id}.",
+                'data' => [
+                    'user_id' => $request->user_id,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             DB::commit();
@@ -448,6 +495,10 @@ class TeamController extends Controller
                 'type' => Type::TEAM,
                 'title' => 'Invitation Accepted',
                 'message' => "You have successfully accepted the invitation to join the team '{$team->name}'.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             Notification::create([
@@ -455,6 +506,10 @@ class TeamController extends Controller
                 'type' => Type::TEAM,
                 'title' => 'Player Joined',
                 'message' => "User ID {$userId} has accepted your invitation and joined the team '{$team->name}'.",
+                'data' => [
+                    'user_id' => $userId,
+                    'team_id' => $team->id,
+                ]
             ]);
 
             DB::commit();
@@ -472,7 +527,6 @@ class TeamController extends Controller
             return $this->sendErrorResponse("Team not found", 404, 'error', []);
         }
         $players = $team->userTeam;
-
 
         $data = [
             'team_id' => $teamId,
