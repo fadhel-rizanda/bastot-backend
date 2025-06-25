@@ -18,7 +18,7 @@ class AllController extends Controller
     {
         $data = [];
         if (!$request->name) {
-            $data = User::where('id', '!=', $request->user()->id)->get();
+            $data = User::where('id', '!=', $request->user()->id)->order_by('created_at')->get();
         } else {
             $data = User::where('name', $request->name)->where('id', '!=', $request->user()->id)->get();
         }
@@ -64,9 +64,9 @@ class AllController extends Controller
         $userId = $request->user()->id;
         $notif = [];
         if (!$request->type) {
-            $notif = Notification::where('user_id', $userId)->get();
+            $notif = Notification::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
         } else {
-            $notif = Notification::where('user_id', $userId)->where('type', $request->type)->get();
+            $notif = Notification::where('user_id', $userId)->where('type', $request->type)->orderBy('created_at', 'desc')->get();
         }
 
         $unread = $notif->where('is_read', false)->count();

@@ -218,10 +218,11 @@ return new class extends Migration {
             $table->id();
             $table->string('name')->nullable(false);
             $table->text('description')->nullable(false);
-            $table->foreignId('field_id')->constrained('fields')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('field_id')->nullable()->constrained('fields')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('home_team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('away_team_id')->constrained('teams')->cascadeOnUpdate()->cascadeOnDelete();
-            $table->timestamp('game_time')->nullable(false)->default(now());
+            $table->timestamp('start_time')->nullable();
+            $table->timestamp('end_time')->nullable();
             $table->integer('home_score')->default(0);
             $table->integer('away_score')->default(0);
             $table->foreignId('status_id')->constrained('statuses')->cascadeOnUpdate()->cascadeOnDelete();
