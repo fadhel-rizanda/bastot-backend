@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\court\Court;
+use App\Models\court\Field;
+use App\Models\court\Schedule;
 use App\Models\game\Team;
 use App\Models\Notification;
 use App\Models\Role;
@@ -17,10 +20,10 @@ class AllController extends Controller
     public function users(Request $request)
     {
         $data = [];
-        if (!$request->name) {
-            $data = User::where('id', '!=', $request->user()->id)->order_by('created_at')->get();
+        if ($request->has('name')) {
+            $data = User::where('name', $request->name)->where('id', '!=', $request->user()->id)->orderBy('created_at', 'desc')->get();
         } else {
-            $data = User::where('name', $request->name)->where('id', '!=', $request->user()->id)->get();
+            $data = User::where('id', '!=', $request->user()->id)->orderBy('created_at', 'desc')->get();
         }
         return response()->json([
             'status' => 'success',
@@ -32,10 +35,10 @@ class AllController extends Controller
     public function roles(Request $request)
     {
         $data = [];
-        if (!$request->type) {
-            $data = Role::all();
+        if ($request->has('type')) {
+            $data = Role::where('type', $request->type)->orderBy('created_at', 'desc')->get();
         } else {
-            $data = Role::where('type', $request->type)->get();
+            $data = Role::orderBy('created_at', 'desc')->get();
         }
         return response()->json([
             'status' => 'success',
@@ -47,10 +50,10 @@ class AllController extends Controller
     public function teams(Request $request)
     {
         $data = [];
-        if (!$request->name) {
-            $data = Team::all();
+        if ($request->has('name')) {
+            $data = Team::where('name', $request->name)->orderBy('created_at', 'desc')->get();
         } else {
-            $data = Team::where('name', $request->name)->get();
+            $data = Team::orderBy('created_at', 'desc')->get();
         }
         return response()->json([
             'status' => 'success',
@@ -63,10 +66,10 @@ class AllController extends Controller
     {
         $userId = $request->user()->id;
         $notif = [];
-        if (!$request->type) {
-            $notif = Notification::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
-        } else {
+        if ($request->has('type')) {
             $notif = Notification::where('user_id', $userId)->where('type', $request->type)->orderBy('created_at', 'desc')->get();
+        } else {
+            $notif = Notification::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
         }
 
         $unread = $notif->where('is_read', false)->count();
@@ -76,10 +79,64 @@ class AllController extends Controller
             'unread_count' => $unread
         ];
 
-//        dd($unread);
         return response()->json([
             'status' => 'success',
             'message' => 'Notifications retrieved successfully',
+            'data' => $data
+        ], 200);
+    }
+
+    public function courts(Request $request)
+    {
+        $data = [];
+        if ($request->has('name')) {
+            $data = Court::where('name', $request->name)->orderBy('created_at', 'desc')->get();
+        } else {
+            $data = Court::orderBy('created_at', 'desc')->get();
+        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Court retrieved successfully',
+            'data' => $data
+        ], 200);
+    }
+
+    public function fields(Request $request)
+    {
+        $data = [];
+        if ($request->has('name')) {
+            $data = Field::where('name', $request->name)->orderBy('created_at', 'desc')->get();
+        } else if ($request->has('court_id')) {
+            $data = Field::where('court_id', $request->court_id)->orderBy('created_at', 'desc')->get();
+        }else {
+            $data = Field::orderBy('created_at', 'desc')->get();
+        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Fields retrieved successfully',
+            'data' => $data
+        ], 200);
+    }
+
+    public function schedules(Request $request)
+    {
+        $data = [];
+        if ($request->has('name')) {
+            $data = Schedule::where('name', $request->name)->orderBy('created_at', 'desc')->get();
+        } else if ($request->has('court_id')) {
+            $data = Schedule::whereHas('field', function ($query) use ($request) {
+                $query->whereHas('court', function ($query) use ($request) {
+                    $query->where('id', $request->court_id);
+                });
+            })->orderBy('created_at', 'desc')->get();
+        }else if($request->has('field_id')){
+            $data = Schedule::where('field_id', $request->field_id)->orderBy('created_at', 'desc')->get();
+        }else {
+            $data = Schedule::orderBy('created_at', 'desc')->get();
+        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Schedule retrieved successfully',
             'data' => $data
         ], 200);
     }

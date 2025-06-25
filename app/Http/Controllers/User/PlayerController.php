@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\game\Game;
 use App\Traits\ResponseAPI;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -72,4 +73,60 @@ class PlayerController extends Controller
 
         return $this->sendSuccessPaginationResponse('My Educations', 200, 'success', null, $data);
     }
+
+    public function myGames(Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $games = Game::where(function ($query) use ($userId) {
+            $query->whereHas('homeTeam.userTeam', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })->orWhereHas('awayTeam.userTeam', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            });
+        })->with([
+            'status', 'field.court', 'homeTeam', 'awayTeam'
+        ])->orderBy('start_time')->paginate(5);
+
+        if ($games->isEmpty()) {
+            return $this->sendErrorResponse('No games found', 404, 'error', null);
+        }
+
+        $data = $games->map(function ($game) {
+            return [
+                'id' => $game->id,
+                'name' => $game->name,
+                'description' => $game->description,
+                'start_time' => $game->start_time,
+                'end_time' => $game->end_time,
+                'home_team_score' => $game->home_score,
+                'away_team_score' => $game->away_score,
+                'status' => $game->status ? [
+                    'id' => $game->status_id,
+                    'name' => $game->status->name,
+                    'color' => $game->status->color,
+                ] : null,
+                'court' => $game->field ? [
+                    'id' => $game->field->court->id,
+                    'name' => $game->field->court->name,
+                    'address' => $game->field->court->address,
+                ] : null,
+                'home_team' => $game->homeTeam ? [
+                    'id' => $game->homeTeam->id,
+                    'initial' => $game->homeTeam->initial,
+                    'name' => $game->homeTeam->name,
+                    'logo' => $game->homeTeam->logo,
+                ] : null,
+                'away_team' => $game->awayTeam ? [
+                    'id' => $game->awayTeam->id,
+                    'initial' => $game->awayTeam->initial,
+                    'name' => $game->awayTeam->name,
+                    'logo' => $game->awayTeam->logo,
+                ] : null,
+            ];
+        });
+
+        return $this->sendSuccessPaginationResponse('Games retrieved successfully', 200, 'success', $data, $games);
+    }
+
 }

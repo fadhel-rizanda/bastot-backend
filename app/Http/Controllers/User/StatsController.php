@@ -13,9 +13,11 @@ class StatsController extends Controller
 {
     use ResponseAPI;
 
-    public function createStats(Request $request, $gameId, $playerId)
+    public function createStats(Request $request)
     {
         $fields = $request->validate([
+            'game_id' => 'required|integer',
+            'player_id' => 'required|integer',
             'minutes' => 'required|integer',
             'points' => 'required|integer',
             'rebounds' => 'required|integer',
@@ -33,8 +35,8 @@ class StatsController extends Controller
         ]);
 
         $fields = array_merge($fields, [
-            'game_id' => $gameId,
-            'user_id' => $playerId,
+            'game_id' => $request->game_id,
+            'user_id' => $request->player_id,
         ]);
 
         DB::beginTransaction();

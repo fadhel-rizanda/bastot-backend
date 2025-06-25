@@ -64,6 +64,9 @@ Route::middleware('auth:api')->group(function () {
         Route::get("/users", [AllController::class, 'users']);
         Route::get('/roles', [AllController::class, 'roles']);
         Route::get('/teams', [AllController::class, 'teams']);
+        Route::get('/courts', [AllController::class, 'courts']);
+        Route::get('/fields', [AllController::class, 'fields']);
+        Route::get('/schedules', [AllController::class, 'schedules']);
         Route::get('/notifications', [AllController::class, 'myNotifications']);
     });
 
@@ -82,6 +85,7 @@ Route::post('/email/verification-notification', [EmailVerificationNotificationCo
 // player routes
 Route::middleware(['auth:api', isPlayer::class])->group(function () {
     Route::get("/my-teams", [PlayerController::class, 'myTeams']);
+    Route::get("/my-games", [PlayerController::class, 'myGames']);
     Route::get("/my-stats", [PlayerController::class, 'myStats']);
     Route::get("/my-educations", [PlayerController::class, 'myEducations']);
 
@@ -109,6 +113,7 @@ Route::middleware(['auth:api', isCourtOwner::class])->group(function () {
     Route::post("/schedule", [CourtOwnerController::class, 'createScheduleByList']);
     Route::post("/reservation", [CourtOwnerController::class, 'createReservations']);
     Route::post("/games/{gameId}/stats/{playerId}", [StatsController::class, 'createStats']);
+    Route::post("/games/stats/", [StatsController::class, 'createStats']);
     Route::put("/games/{gameId}/stats/{playerId}", [StatsController::class, 'updateStats']);
 });
 
