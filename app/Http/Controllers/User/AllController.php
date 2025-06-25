@@ -17,10 +17,9 @@ class AllController extends Controller
     public function users(Request $request)
     {
         $data = [];
-        if(!$request->name){
+        if (!$request->name) {
             $data = User::where('id', '!=', $request->user()->id)->get();
-        }
-        else{
+        } else {
             $data = User::where('name', $request->name)->where('id', '!=', $request->user()->id)->get();
         }
         return response()->json([
@@ -33,10 +32,9 @@ class AllController extends Controller
     public function roles(Request $request)
     {
         $data = [];
-        if(!$request->type){
+        if (!$request->type) {
             $data = Role::all();
-        }
-        else{
+        } else {
             $data = Role::where('type', $request->type)->get();
         }
         return response()->json([
@@ -49,10 +47,9 @@ class AllController extends Controller
     public function teams(Request $request)
     {
         $data = [];
-        if(!$request->name){
+        if (!$request->name) {
             $data = Team::all();
-        }
-        else{
+        } else {
             $data = Team::where('name', $request->name)->get();
         }
         return response()->json([
@@ -65,13 +62,21 @@ class AllController extends Controller
     public function myNotifications(Request $request)
     {
         $userId = $request->user()->id;
-        $data = [];
-        if(!$request->type){
-            $data = Notification::where('user_id', $userId)->get();
+        $notif = [];
+        if (!$request->type) {
+            $notif = Notification::where('user_id', $userId)->get();
+        } else {
+            $notif = Notification::where('user_id', $userId)->where('type', $request->type)->get();
         }
-        else{
-            $data = Notification::where('user_id', $userId)->where('type', $request->type)->get();
-        }
+
+        $unread = $notif->where('is_read', false)->count();
+
+        $data = [
+            'notifications' => $notif,
+            'unread_count' => $unread
+        ];
+
+//        dd($unread);
         return response()->json([
             'status' => 'success',
             'message' => 'Notifications retrieved successfully',
