@@ -64,6 +64,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get("/users", [AllController::class, 'users']);
         Route::get('/roles', [AllController::class, 'roles']);
         Route::get('/teams', [AllController::class, 'teams']);
+        Route::get('/notifications', [AllController::class, 'myNotifications']);
     });
 
     Route::get("/games/{gameId}/stats", [GameController::class, 'getStats']);

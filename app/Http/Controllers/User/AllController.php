@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\game\Team;
+use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
 use App\Traits\ResponseAPI;
@@ -57,6 +58,23 @@ class AllController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Teams retrieved successfully',
+            'data' => $data
+        ], 200);
+    }
+
+    public function myNotifications(Request $request)
+    {
+        $userId = $request->user()->id;
+        $data = [];
+        if(!$request->type){
+            $data = Notification::where('user_id', $userId)->get();
+        }
+        else{
+            $data = Notification::where('user_id', $userId)->where('type', $request->type)->get();
+        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Notifications retrieved successfully',
             'data' => $data
         ], 200);
     }
