@@ -344,6 +344,23 @@ return new class extends Migration {
             $table->timestamps();
         });
 
+
+        Schema::create('play_by_play', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('game_id')->constrained('games');
+            $table->foreignId('team_id')->constrained('teams');
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('status_id')->nullable()->constrained('statuses');
+
+            $table->integer('quarter')->nullable(false);
+            $table->integer('time_seconds')->nullable(false);
+            $table->integer('home_score')->nullable(false);
+            $table->integer('away_score')->nullable(false);
+            $table->string('title')->nullable(false);
+            $table->text('description')->nullable(false);
+            $table->timestamps();
+        });
+
 //        many to many
         Schema::create('court_review', function (Blueprint $table) {
             $table->foreignId('court_id')->constrained('courts')->cascadeOnUpdate()->cascadeOnDelete();
@@ -399,6 +416,13 @@ return new class extends Migration {
             $table->foreignId('tag_id')->constrained('tags');
             $table->timestamps();
             $table->primary(['training_session_id', 'tag_id']);
+        });
+
+        Schema::create('play_by_play_tag', function (Blueprint $table) {
+            $table->foreignId('play_by_play_id')->constrained('play_by_plays');
+            $table->foreignId('tag_id')->constrained('tags');
+            $table->timestamps();
+            $table->primary(['play_by_play_id', 'tag_id']);
         });
     }
 

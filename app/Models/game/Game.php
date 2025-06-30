@@ -79,4 +79,8 @@ class Game extends Model
     {
         return $this->hasMany(Stats::class);
     }
+
+    public function playByPlays(){
+        return $this->hasMany(PlayByPlay::class);
+    }
 }

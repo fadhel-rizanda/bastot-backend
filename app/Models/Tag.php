@@ -7,6 +7,7 @@ use App\Models\community\Community;
 use App\Models\community\Event;
 use App\Models\community\Tournament;
 use App\Models\game\Game;
+use App\Models\game\PlayByPlay;
 use App\Models\train\TrainingSession;
 use App\Models\train\WorkoutPlan;
 use Illuminate\Database\Eloquent\Model;
@@ -48,5 +49,10 @@ class Tag extends Model
     public function trainingSessions()
     {
         return $this->belongsToMany(TrainingSession::class, 'training_session_tag', 'tag_id', 'training_session_id');
+    }
+
+    public function playByPlays()
+    {
+        return $this->belongsToMany(PlayByPlay::class, 'play_by_play_tag', 'tag_id', 'play_by_play_id');
     }
 }

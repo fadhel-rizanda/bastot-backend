@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Enums\Type;
 use App\Models\career\Applicant;
 use App\Models\court\Reservation;
+use App\Models\game\PlayByPlay;
 use Illuminate\Database\Eloquent\Model;
 
 class Status extends Model
@@ -25,8 +26,11 @@ class Status extends Model
     public function reservations(){
         return $this->hasMany(Reservation::class, 'status_id', 'id');
     }
-
     public function applicants(){
         return $this->hasMany(Applicant::class, 'status_id', 'id');
+    }
+
+    public function playByPlays(){
+        return $this->hasMany(PlayByPlay::class, 'status_id', 'id');
     }
 }

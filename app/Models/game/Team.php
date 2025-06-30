@@ -37,4 +37,8 @@ class Team extends Model
     public function teamOwner(){
         return $this->belongsTo(User::class, 'team_owner_id');
     }
+
+    public function playByPlays(){
+        return $this->hasMany(PlayByPlay::class);
+    }
 }

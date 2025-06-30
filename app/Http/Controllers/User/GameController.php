@@ -70,62 +70,62 @@ class GameController extends Controller
     }
 
 //    Create Game v1
- /*   public function createGame(Request $request)
-    {
-        $fields = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'string',
-            'field_id' => 'required|integer',
-            'home_team_id' => 'required|integer',
-            'away_team_id' => 'required|integer',
-            'start_time' => 'required|date_format:Y-m-d H:i:s',
-            'end_time' => 'required|date_format:Y-m-d H:i:s',
-            'home_team_score' => 'integer|nullable',
-            'away_team_score' => 'integer|nullable',
-            'status_id' => 'required|in:SCHEDULED,ongoing,completed,cancelled',
-        ]);
+    /*   public function createGame(Request $request)
+       {
+           $fields = $request->validate([
+               'name' => 'required|string|max:255',
+               'description' => 'string',
+               'field_id' => 'required|integer',
+               'home_team_id' => 'required|integer',
+               'away_team_id' => 'required|integer',
+               'start_time' => 'required|date_format:Y-m-d H:i:s',
+               'end_time' => 'required|date_format:Y-m-d H:i:s',
+               'home_team_score' => 'integer|nullable',
+               'away_team_score' => 'integer|nullable',
+               'status_id' => 'required|in:SCHEDULED,ongoing,completed,cancelled',
+           ]);
 
-        DB::beginTransaction();
-        try {
-            $game = Game::create($fields);
+           DB::beginTransaction();
+           try {
+               $game = Game::create($fields);
 
-            Notification::create([
-                'user_id' => $request->user()->id,
-                'type' => Type::GAME,
-                'title' => 'Game Created',
-                'message' => "Game '{$fields['name']}' between Team ID {$fields['home_team_id']} and Team ID {$fields['away_team_id']} has been scheduled.",
-                'data' => [
-                    'game_id' => $game->id,
-                ]
-            ]);
+               Notification::create([
+                   'user_id' => $request->user()->id,
+                   'type' => Type::GAME,
+                   'title' => 'Game Created',
+                   'message' => "Game '{$fields['name']}' between Team ID {$fields['home_team_id']} and Team ID {$fields['away_team_id']} has been scheduled.",
+                   'data' => [
+                       'game_id' => $game->id,
+                   ]
+               ]);
 
-            Notification::create([
-                'user_id' => Team::find($fields['home_team_id'])->team_owner_id,
-                'type' => Type::GAME,
-                'title' => 'Home Game Scheduled',
-                'message' => "Your team is scheduled to play against Team ID {$fields['away_team_id']} at {$fields['start_time']}.",
-                'data' => [
-                    'game_id' => $game->id,
-                ]
-            ]);
+               Notification::create([
+                   'user_id' => Team::find($fields['home_team_id'])->team_owner_id,
+                   'type' => Type::GAME,
+                   'title' => 'Home Game Scheduled',
+                   'message' => "Your team is scheduled to play against Team ID {$fields['away_team_id']} at {$fields['start_time']}.",
+                   'data' => [
+                       'game_id' => $game->id,
+                   ]
+               ]);
 
-            Notification::create([
-                'user_id' => Team::find($fields['away_team_id'])->team_owner_id,
-                'type' => Type::GAME,
-                'title' => 'Away Game Scheduled',
-                'message' => "Your team is scheduled to play against Team ID {$fields['home_team_id']} at {$fields['start_time']}.",
-                'data' => [
-                    'game_id' => $game->id,
-                ]
-            ]);
+               Notification::create([
+                   'user_id' => Team::find($fields['away_team_id'])->team_owner_id,
+                   'type' => Type::GAME,
+                   'title' => 'Away Game Scheduled',
+                   'message' => "Your team is scheduled to play against Team ID {$fields['home_team_id']} at {$fields['start_time']}.",
+                   'data' => [
+                       'game_id' => $game->id,
+                   ]
+               ]);
 
-            DB::commit();
-            return $this->sendSuccessResponse('Game created successfully', 201, 'success', $game);
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            return $this->sendExceptionResponse('Failed to create game', 500, 'error', $exception);
-        }
-    }*/
+               DB::commit();
+               return $this->sendSuccessResponse('Game created successfully', 201, 'success', $game);
+           } catch (\Exception $exception) {
+               DB::rollBack();
+               return $this->sendExceptionResponse('Failed to create game', 500, 'error', $exception);
+           }
+       }*/
 
     public function createGameAndReservation(Request $request)
     {
@@ -135,8 +135,10 @@ class GameController extends Controller
             'field_id' => 'required|integer',
             'home_team_id' => 'required|integer',
             'away_team_id' => 'required|integer',
-            'reservations' => 'required|array|min:1',
-            'reservations.*.schedule_id' => 'required|numeric',
+//            'reservations' => 'required|array|min:1',
+//            'reservations.*.schedule_id' => 'required|numeric',
+            'reservations' => 'required|array',
+            'reservations.*' => 'required|integer|exists:schedules,id',
         ]);
 
         if ($validator->fails()) {
@@ -149,15 +151,23 @@ class GameController extends Controller
 
         DB::beginTransaction();
         try {
-            // Step 1: Ambil semua schedule dan urutkan berdasarkan waktu mulai
-            $schedules = Schedule::whereIn('id', collect($request->reservations)->pluck('schedule_id'))
+//            $schedules = Schedule::whereIn('id', collect($request->reservations)->pluck('schedule_id'))
+            $schedules = Schedule::whereIn('id', $request->reservations)
                 ->where('is_available', true)
                 ->orderBy('start_time')
                 ->get();
-
             if ($schedules->count() !== count($request->reservations)) {
                 DB::rollBack();
-                return $this->sendErrorResponse( "Some schedules are unavailable", 409, null, null);
+                return $this->sendErrorResponse("Some schedules are unavailable", 409, null, null);
+            }
+
+            $homeTeamUserIds = UserTeam::where('team_id', $request->home_team_id)->pluck('user_id')->toArray();
+            $awayTeamUserIds = UserTeam::where('team_id', $request->away_team_id)->pluck('user_id')->toArray();
+
+            $duplicateUserIds = array_intersect($homeTeamUserIds, $awayTeamUserIds);
+
+            if (!empty($duplicateUserIds)) {
+                return $this->sendErrorResponse("A user cannot be in both home and away team.", 422, null, null);
             }
 
             $grouped = [];
@@ -166,7 +176,7 @@ class GameController extends Controller
 
             foreach ($schedules as $schedule) {
                 $gap = $lastEndTime ? abs(Carbon::parse($schedule->start_time)->diffInMinutes($lastEndTime)) : 0;
-                Log::info("gap: ".$gap);
+                Log::info("gap: " . $gap);
                 if (!$lastEndTime || $gap <= 30) {
                     $currentGroup[] = $schedule;
                 } else {
@@ -181,7 +191,6 @@ class GameController extends Controller
                 $first = $group[0];
                 $last = end($group);
 
-                // Create Game
                 $game = Game::create([
                     'name' => $request->name . ' #' . ($index + 1),
                     'description' => $request->description,
@@ -264,12 +273,36 @@ class GameController extends Controller
         }
     }
 
-    public function getStats($gameId)
+    public function gameDetail($gameId)
     {
         $game = Game::find($gameId);
         if (!$game) {
             return $this->sendErrorResponse('Game not found', 400, 'error', null);
         }
+
+        $playByPlays = $game->playByPlays()->with('user')->get();
+
+        $playByPlays = $playByPlays->map(function ($play) {
+            return [
+                'id' => $play->id,
+                'team_id' => $play->team_id,
+                'status_id' => $play->status_id,
+                'quarter' => $play->quarter,
+                'time_seconds' => $play->time_seconds,
+                'home_score' => $play->home_score,
+                'away_score' => $play->away_score,
+                'title' => $play->title,
+                'description' => $play->description,
+                'created_at' => $play->created_at,
+                'updated_at' => $play->updated_at,
+                'user' => [
+                    'id' => $play->user->id,
+                    'name' => $play->user->name,
+                    'profile_picture' => $play->user->profile_picture,
+                ],
+            ];
+        });
+
 
         $homeTeam = $game->homeTeam->userTeam()->with(['user.stats' => function ($query) use ($gameId) {
             $query->where('game_id', $gameId);
@@ -277,11 +310,11 @@ class GameController extends Controller
             $user = $userTeam->user;
 
             return [
-                'user_id' => $user->id,
+                'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'team_role' => $userTeam->role_id,
-                'team_status' => $userTeam->status_id,
+                'role' => $userTeam->role_id,
+                'status' => $userTeam->status_id,
                 'stats' => optional($user->stats->first(), function ($stat) {
                     return [
                         'game_id' => $stat->game_id,
@@ -309,11 +342,130 @@ class GameController extends Controller
             $user = $userTeam->user;
 
             return [
-                'user_id' => $user->id,
+                'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'team_role' => $userTeam->role_id,
-                'team_status' => $userTeam->status_id,
+                'role' => $userTeam->role_id,
+                'status' => $userTeam->status_id,
+                'stats' => optional($user->stats->first(), function ($stat) {
+                    return [
+                        'game_id' => $stat->game_id,
+                        'minutes' => $stat->minutes,
+                        'points' => $stat->points,
+                        'rebounds' => $stat->rebounds,
+                        'assists' => $stat->assists,
+                        'steals' => $stat->steals,
+                        'blocks' => $stat->blocks,
+                        'turnovers' => $stat->turnovers,
+                        '3pm' => $stat->{'3pm'},
+                        '3pa' => $stat->{'3pa'},
+                        '2pm' => $stat->{'2pm'},
+                        '2pa' => $stat->{'2pa'},
+                        'ftm' => $stat->ftm,
+                        'fta' => $stat->fta,
+                    ];
+                }),
+            ];
+        });
+
+        $gameDetail = [
+            'id' => $game->id,
+            'name' => $game->name,
+            'description' => $game->description,
+            'court' => $game->field ? [
+                'id' => $game->field->court->id,
+                'name' => $game->field->court->name,
+                'address' => $game->field->court->address,
+                'field' => [
+                    'id' => $game->field->id,
+                    'name' => $game->field->name,
+                ],
+            ] : null,
+            'home_score' => $game->home_score,
+            'away_score' => $game->away_score,
+            'start_time' => $game->start_time,
+            'end_time' => $game->end_time,
+            'status_id' => $game->status_id,
+            'created_at' => $game->created_at,
+            'updated_at' => $game->updated_at,
+        ];
+
+        $data = [
+            'game' => $gameDetail,
+            'play_by_play' => $playByPlays,
+            'home_team' => [
+                'id' => $game->home_team_id,
+                'name' => $game->homeTeam->name,
+                'initial' => $game->homeTeam->initial,
+                'logo' => $game->homeTeam->logo,
+                'team_owner_id' => $game->homeTeam->team_owner_id,
+                'created_at' => $game->homeTeam->created_at,
+                'players' => $homeTeam
+            ],
+            'away_team' => [
+                'id' => $game->away_team_id,
+                'name' => $game->awayTeam->name,
+                'initial' => $game->awayTeam->initial,
+                'logo' => $game->awayTeam->logo,
+                'team_owner_id' => $game->awayTeam->team_owner_id,
+                'created_at' => $game->awayTeam->created_at,
+                'players' => $awayTeam
+            ],
+        ];
+
+        return $this->sendSuccessResponse('Stats retrieved successfully', 200, 'success', $data);
+    }
+
+    public function getStats($gameId)
+    {
+        $game = Game::find($gameId);
+        if (!$game) {
+            return $this->sendErrorResponse('Game not found', 400, 'error', null);
+        }
+
+        $homeTeam = $game->homeTeam->userTeam()->with(['user.stats' => function ($query) use ($gameId) {
+            $query->where('game_id', $gameId);
+        }])->get()->map(function ($userTeam) {
+            $user = $userTeam->user;
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $userTeam->role_id,
+                'status' => $userTeam->status_id,
+                'stats' => optional($user->stats->first(), function ($stat) {
+                    return [
+                        'game_id' => $stat->game_id,
+                        'minutes' => $stat->minutes,
+                        'points' => $stat->points,
+                        'rebounds' => $stat->rebounds,
+                        'assists' => $stat->assists,
+                        'steals' => $stat->steals,
+                        'blocks' => $stat->blocks,
+                        'turnovers' => $stat->turnovers,
+                        '3pm' => $stat->{'3pm'},
+                        '3pa' => $stat->{'3pa'},
+                        '2pm' => $stat->{'2pm'},
+                        '2pa' => $stat->{'2pa'},
+                        'ftm' => $stat->ftm,
+                        'fta' => $stat->fta,
+                    ];
+                }),
+            ];
+        });
+
+        $awayTeam = $game->awayTeam->userTeam()->with(['user.stats' => function ($query) use ($gameId) {
+            $query->where('game_id', $gameId);
+        }])->get()->map(function ($userTeam) {
+            $user = $userTeam->user;
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $userTeam->role_id,
+                'status' => $userTeam->status_id,
                 'stats' => optional($user->stats->first(), function ($stat) {
                     return [
                         'game_id' => $stat->game_id,

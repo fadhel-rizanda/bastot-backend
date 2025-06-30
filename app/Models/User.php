@@ -9,6 +9,7 @@ use App\Models\career\School;
 use App\Models\career\UserEducation;
 use App\Models\community\UserCommunity;
 use App\Models\court\Reservation;
+use App\Models\game\PlayByPlay;
 use App\Models\game\Stats;
 use App\Models\game\UserTeam;
 use App\Models\train\UserWorkoutPlan;
@@ -124,5 +125,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function schools(){
         return $this->hasManyThrough(UserEducation::class, School::class);
+    }
+
+    public function playByPlays(){
+        return $this->hasMany(PlayByPlay::class);
     }
 }
