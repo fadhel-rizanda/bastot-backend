@@ -63,15 +63,21 @@ class CourtOwnerController extends Controller
                     ['id' => $uriResponse['place_id']],
                     [
                         'name' => $uriResponse['display_name'],
-                        'residential' => $uriResponse['address']['residential'],
-                        'village' => $uriResponse['address']['village'],
-                        'city' => $uriResponse['address']['city'],
-                        'state' => $uriResponse['address']['state'],
-                        'region' => $uriResponse['address']['region'],
-                        'country' => $uriResponse['address']['country'],
-                        'country_code' => $uriResponse['address']['country_code'],
-                        'postcode' => $uriResponse['address']['postcode'],
-                    ]);
+                        'residential' => $uriResponse['address']['residential'] ?? null,
+                        'road' => $uriResponse['address']['road'] ?? null,
+                        'city_block' => $uriResponse['address']['city_block'] ?? null,
+                        'suburb' => $uriResponse['address']['suburb'] ?? null,
+                        'city_district' => $uriResponse['address']['city_district'] ?? null,
+                        'village' => $uriResponse['address']['village'] ?? null,
+                        'city' => $uriResponse['address']['city'] ?? null,
+                        'state' => $uriResponse['address']['state'] ?? null,
+                        'region' => $uriResponse['address']['region'] ?? null,
+                        'country' => $uriResponse['address']['country'] ?? null,
+                        'country_code' => $uriResponse['address']['country_code'] ?? null,
+                        'postcode' => $uriResponse['address']['postcode'] ?? null,
+                    ]
+                );
+
 
                 $fields['location_id'] = $location->id;
             }

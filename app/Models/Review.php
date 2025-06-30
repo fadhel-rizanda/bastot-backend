@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\community\Event;
 use App\Models\community\Tournament;
 use App\Models\court\Court;
 use App\Models\court\Field;
@@ -14,17 +15,26 @@ class Review extends Model
       'title',
       'body',
       'rating',
+        'user_id'
     ];
 
-    public function tournament(){
-        return $this->belongsTo(Tournament::class);
+    public function tournaments(){
+        return $this->belongsToMany(Tournament::class, 'tournament_review', 'review_id', 'tournament_id');
     }
 
-    public function court(){
-        return $this->belongsTo(Court::class);
+    public function courts(){
+        return $this->belongsToMany(Court::class, 'court_review', 'review_id', 'court_id');
     }
 
-    public function field(){
-        return $this->belongsTo(Field::class);
+    public function fields(){
+        return $this->belongsToMany(Field::class, 'field_review', 'review_id', 'field_id');
+    }
+
+    public function events(){
+        return $this->belongsToMany(Event::class, 'event_review', 'review_id', 'event_id');
+    }
+
+    public function user(){
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

@@ -616,6 +616,5 @@ class TeamController extends Controller
     public function getPlayByPlay(Request $request, $gameId){
         $playByPlay = PlayByPlay::where('id', $gameId)->with(['user', 'tags', 'status'])->firstOrFail();
         return $this->sendSuccessResponse('Play by play', 200, 'success', $playByPlay);
-
     }
 }

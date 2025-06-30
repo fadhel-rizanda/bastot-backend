@@ -2,8 +2,11 @@
 
 namespace App\Models\community;
 
+use App\Models\court\Court;
 use App\Models\game\Game;
 use App\Models\game\TournamentGame;
+use App\Models\Review;
+use App\Models\Tag;
 use Illuminate\Database\Eloquent\Model;
 
 class Tournament extends Model
@@ -42,5 +45,9 @@ class Tournament extends Model
 
     public function games(){
         return $this->belongsToMany(Game::class, 'tournament_game', 'tournament_id', 'game_id');
+    }
+
+    public function reviews(){
+        return $this->belongsToMany(Review::class, 'tournament_review', 'tournament_id', 'review_id');
     }
 }

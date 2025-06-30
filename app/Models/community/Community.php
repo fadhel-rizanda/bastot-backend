@@ -2,6 +2,7 @@
 
 namespace App\Models\community;
 
+use App\Models\court\Court;
 use App\Models\Review;
 use App\Models\Tag;
 use App\Models\User;
@@ -35,10 +36,14 @@ class Community extends Model
     }
 
     public function reviews(){
-        return $this->hasMany(Review::class);
+        return $this->belongsToMany(Review::class);
     }
 
     public function users(){
         return $this->belongsToMany( User::class, 'user_community', 'community_id', 'user_id');
+    }
+
+    public function baseCourt(){
+        return $this->belongsTo(Court::class, 'base_court');
     }
 }

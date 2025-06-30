@@ -3,15 +3,21 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\community\Community;
+use App\Models\community\Event;
+use App\Models\community\Tournament;
 use App\Models\court\Court;
 use App\Models\court\Field;
 use App\Models\court\Schedule;
 use App\Models\game\Team;
 use App\Models\Notification;
+use App\Models\Review;
 use App\Models\Role;
 use App\Models\User;
 use App\Traits\ResponseAPI;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class AllController extends Controller
 {
@@ -147,5 +153,56 @@ class AllController extends Controller
             'message' => 'Schedule retrieved successfully',
             'data' => $data
         ], 200);
+    }
+
+    public function getCommunities(Request $request)
+    {
+        $community = Community::with(['users', 'events', 'tags', 'reviews', 'baseCourt'])->paginate(5);
+        return $this->sendSuccessPaginationResponse('Communities retrieved successfully', 200, 'success', null, $community);
+    }
+
+    public function createReview(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer',
+            'type' => 'required|string|in:event,court,tournament,field',
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendErrorResponse($validator->errors(), 422, 'Validation failed', null);
+        }
+
+        $modelClass = match ($request->type) {
+            'event' => Event::class,
+            'court' => Court::class,
+            'tournament' => Tournament::class,
+            'field' => Field::class,
+            default => null,
+        };
+
+        if (!$modelClass || !$model = $modelClass::find($request->id)) {
+            return $this->sendErrorResponse(null, 404, 'Target not found', null);
+        }
+
+        DB::beginTransaction();
+        try {
+            $review = Review::create([
+                'user_id' => $request->user()->id,
+                'title' => $request->title,
+                'body' => $request->body,
+                'rating' => $request->rating,
+            ]);
+
+            $model->reviews()->attach($review->id);
+
+            DB::commit();
+            return $this->sendSuccessResponse("Review created", 201, null, $review);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendExceptionResponse("Failed to create review", 500, null, $e);
+        }
     }
 }

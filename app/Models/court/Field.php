@@ -31,6 +31,6 @@ class Field extends Model
     }
 
     public function reviews(){
-        return $this->hasMany(Review::class);
+        return $this->belongsToMany(Review::class, 'field_review', 'field_id', 'review_id');
     }
 }

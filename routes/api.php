@@ -14,6 +14,8 @@ use \App\Http\Controllers\User\PlayerController;
 use \App\Http\Controllers\User\StatsController;
 use \App\Http\Controllers\User\GameController;
 use \App\Http\Controllers\User\AllController;
+use \App\Http\Controllers\User\CommunityController;
+use \App\Http\Controllers\GeneralController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -38,7 +40,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
 });
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware('auth:api')->group(callback: function () {
     Route::get("/user", function () {
         $user = \Illuminate\Support\Facades\Auth::user();
         return response()->json([
@@ -68,11 +70,22 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/fields', [AllController::class, 'fields']);
         Route::get('/schedules', [AllController::class, 'schedules']);
         Route::get('/notifications', [AllController::class, 'myNotifications']);
+        Route::get('/communities', [AllController::class, 'getCommunities']);
+
+        Route::post('/reviews', [AllController::class, 'createReview']);
     });
 
-    Route::get("/games/{gameId}/stats", [GameController::class, 'getStats']);
-    Route::get("/games/{gameId}/details", [GameController::class, 'gameDetail']);
-    Route::get("/games/{gameId}/stats/{userId}", [GameController::class, 'getUserStats']);
+    Route::prefix('games')->group(function () {
+        Route::get("/{gameId}/stats", [GameController::class, 'getStats']);
+        Route::get("/{gameId}/details", [GameController::class, 'gameDetail']);
+        Route::get("/{gameId}/stats/{userId}", [GameController::class, 'getUserStats']);
+    });
+
+    Route::prefix('community')->group(function () {
+        Route::post('/', [CommunityController::class, 'createCommunity']);
+        Route::post('/event', [CommunityController::class, 'createEvent']);
+        Route::post('/event/{eventId}/tournament', [CommunityController::class, 'createTournament']);
+    });
 });
 
 Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)

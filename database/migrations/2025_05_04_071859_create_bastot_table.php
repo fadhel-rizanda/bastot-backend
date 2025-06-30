@@ -52,6 +52,7 @@ return new class extends Migration {
 
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->text('title')->nullable();
             $table->text('body')->nullable(false);
             $table->decimal('rating')->nullable();
@@ -63,6 +64,7 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('community_id')->constrained('communities')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('role_id')->constrained('roles')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('status_id')->constrained('statuses')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });
 
@@ -78,6 +80,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name')->unique();
             $table->text('description');
+            $table->decimal('price')->nullable();
 
             $table->text('address')->nullable(false);
             $table->decimal('latitude')->nullable(false);
@@ -85,6 +88,7 @@ return new class extends Migration {
             $table->foreignId('location_id')->constrained('locations')->cascadeOnUpdate()->cascadeOnDelete();
 
             $table->foreignId('community_id')->constrained('communities')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('status_id')->constrained('statuses')->cascadeOnUpdate()->cascadeOnDelete();
             $table->dateTime('start_time')->nullable(false);
             $table->dateTime('end_time')->nullable(false);
             $table->timestamps();
@@ -154,7 +158,6 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
             $table->foreignId('field_id')->constrained('fields')->cascadeOnUpdate()->cascadeOnDelete();
@@ -179,14 +182,18 @@ return new class extends Migration {
         Schema::create('locations', function (Blueprint $table) {
             $table->integer('id')->primary();
             $table->string('name');
-            $table->string('residential')->nullable(false);
-            $table->string('village')->nullable(false);
-            $table->string('city')->nullable(false);
-            $table->string('state')->nullable(false);
-            $table->string('region')->nullable(false);
-            $table->string('country')->nullable(false);
-            $table->string('country_code')->nullable(false);
-            $table->string('postcode')->nullable(false);
+            $table->string('residential')->nullable();
+            $table->string('road')->nullable();
+            $table->string('city_block')->nullable();
+            $table->string('suburb')->nullable();
+            $table->string('city_district')->nullable();
+            $table->string('village')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('region')->nullable();
+            $table->string('country')->nullable();
+            $table->string('country_code')->nullable();
+            $table->string('postcode')->nullable();
             $table->timestamps();
         });
 
@@ -383,6 +390,20 @@ return new class extends Migration {
             $table->primary(['community_id', 'review_id']);
         });
 
+        Schema::create('event_review', function (Blueprint $table) {
+            $table->foreignId('event_id')->constrained('events')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('review_id')->constrained('reviews')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
+            $table->primary(['event_id', 'review_id']);
+        });
+
+        Schema::create('tournament_review', function (Blueprint $table) {
+            $table->foreignId('tournament_id')->constrained('tournaments')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('review_id')->constrained('reviews')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
+            $table->primary(['tournament_id', 'review_id']);
+        });
+
         Schema::create('community_tag', function (Blueprint $table) {
             $table->foreignId('community_id')->constrained('communities')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('tag_id')->constrained('tags')->cascadeOnUpdate()->cascadeOnDelete();
@@ -456,6 +477,9 @@ return new class extends Migration {
         Schema::dropIfExists('reviews');
         Schema::dropIfExists('court_review');
         Schema::dropIfExists('community_review');
+        Schema::dropIfExists('field_review');
+        Schema::dropIfExists('event_review');
+        Schema::dropIfExists('tournament_review');
         Schema::dropIfExists('community_tag');
         Schema::dropIfExists('event_tag');
         Schema::dropIfExists('tournament_tag');

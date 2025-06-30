@@ -20,15 +20,15 @@ class Court extends Model
         'location_id',
     ];
 
-    public function reviews(){
-        return $this->hasMany(Review::class);
-    }
-
     public function location(){
         return $this->belongsTo(Location::class);
     }
 
     public function owner(){
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function reviews(){
+        return $this->belongsToMany(Review::class, 'court_review', 'court_id', 'review_id');
     }
 }

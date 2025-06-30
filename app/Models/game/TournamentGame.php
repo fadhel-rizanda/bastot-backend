@@ -2,6 +2,7 @@
 
 namespace App\Models\game;
 
+use App\Models\community\Tournament;
 use Illuminate\Database\Eloquent\Model;
 
 class TournamentGame extends Model
