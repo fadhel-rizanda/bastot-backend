@@ -4,12 +4,15 @@ namespace App\Http\Controllers\User;
 
 use App\Enums\Enums\Type;
 use App\Http\Controllers\Controller;
+use App\Models\game\PlayByPlay;
 use App\Models\game\Team;
 use App\Models\Notification;
+use App\Models\Tag;
 use App\Traits\ResponseAPI;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class TeamController extends Controller
 {
@@ -158,7 +161,8 @@ class TeamController extends Controller
         }
         if ($team->team_owner_id == $userId) {
             return $this->sendErrorResponse("You cannot leave the team as the owner", 403, 'error', []);
-        } else if ($userStatus != 'ACTIVE') {
+        }
+        if ($userStatus != 'ACTIVE') {
             return $this->sendErrorResponse("Player already {$userStatus} from the team", 400, 'error', []);
         }
 
@@ -211,12 +215,13 @@ class TeamController extends Controller
         if ($team->isFull()) {
             return $this->sendErrorResponse("Team is full", 400, 'error', []);
         }
-
         if ($userStatus == null) {
             return $this->sendErrorResponse("Player not found in the team please join the team", 404, 'error', []);
-        } else if ($userStatus = 'ACTIVE') {
+        }
+        if ($userStatus = 'ACTIVE') {
             return $this->sendErrorResponse("Player already {$userStatus} from the team", 400, 'error', []);
-        } else if ($userStatus == 'DEACTIVATED' || $userStatus == 'BANNED') {
+        }
+        if ($userStatus == 'DEACTIVATED' || $userStatus == 'BANNED') {
             return $this->sendErrorResponse("Please contact the team owner to rejoin", 400, 'error', []);
         }
 
@@ -266,15 +271,17 @@ class TeamController extends Controller
             return $this->sendErrorResponse("Team not found", 404, 'error', []);
         }
 
-//        if ($team->team_owner_id != $request->user()->id) {
-//            return response()->json([
-//                'message' => 'You are not authorized to activate this player',
-//            ], 403);
-//        } else
+        if ($team->team_owner_id != $request->user()->id) {
+            return response()->json([
+                'message' => 'You are not authorized to activate this player',
+            ], 403);
+        }
 
         if ($userStatus == null) {
             return $this->sendErrorResponse("Player not found in the team", 404, 'error', []);
-        } else if ($userStatus != 'DEACTIVATED' || $userStatus != 'BANNED') {
+        }
+
+        if ($userStatus != 'DEACTIVATED' || $userStatus != 'BANNED') {
             return $this->sendErrorResponse("Player already {$userStatus} from the team", 400, 'error', []);
         }
 
@@ -322,18 +329,18 @@ class TeamController extends Controller
         if (!$team) {
             return $this->sendErrorResponse("Team not found", 404, 'error', []);
         }
-
-//        if ($team->team_owner_id != $request->user()->id) {
-//            return response()->json([
-//                'message' => 'You are not authorized to kick this player',
-//            ], 403);
-//        } else
-
+        if ($team->team_owner_id != $request->user()->id) {
+            return response()->json([
+                'message' => 'You are not authorized to kick this player',
+            ], 403);
+        }
         if ($team->team_owner_id == $userId) {
             return $this->sendErrorResponse("You cannot leave the team as the owner", 403, 'error', []);
-        } else if ($userStatus == null) {
+        }
+        if ($userStatus == null) {
             return $this->sendErrorResponse("Player not found in the team", 404, 'error', []);
-        } else if ($userStatus != 'ACTIVE') {
+        }
+        if ($userStatus != 'ACTIVE') {
             return $this->sendErrorResponse("Player already {$userStatus} from the team", 400, 'error', []);
         }
 
@@ -477,7 +484,6 @@ class TeamController extends Controller
         if ($team->isFull()) {
             return $this->sendErrorResponse("Team is full", 400, 'error', []);
         }
-
         if ($userStatus == null) {
             return $this->sendErrorResponse("Player not found in the team please join the team", 404, 'error', []);
         } else if ($userStatus != 'INVITED') {
@@ -541,5 +547,75 @@ class TeamController extends Controller
             }),
         ];
         return $this->sendSuccessResponse('Team Players', 200, 'success', $data);
+    }
+
+    public function createPlayByPlay(Request $request, $gameId){
+        $validator = Validator::make($request->all(), [
+            'play_by_play' => 'required|array',
+
+            'play_by_play.*.user_id' => 'required|integer',
+            'play_by_play.*.team_id' => 'required|integer',
+            'play_by_play.*.status_id' => 'nullable|integer',
+
+            'play_by_play.*.quarter' => 'required|integer',
+            'play_by_play.*.time_seconds' => 'required|integer',
+            'play_by_play.*.home_score' => 'required|integer',
+            'play_by_play.*.away_score' => 'required|integer',
+            'play_by_play.*.title' => 'required|string|max:255',
+            'play_by_play.*.description' => 'nullable|string',
+
+            'play_by_play.*.tags' => 'nullable|array',
+            'play_by_play.*.tags.*' => 'string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendErrorResponse($validator->errors(), 422, 'Validation failed', null);
+        }
+
+        $plays = collect();
+
+        DB::beginTransaction();
+        try {
+            foreach ($request->play_by_play as $playByPlay){
+                $play = PlayByPlay::create([
+                    'game_id' => $gameId,
+                    'user_id' => $playByPlay['user_id'],
+                    'team_id' => $playByPlay['team_id'],
+                    'status_id' => $playByPlay['status_id'],
+
+                    'quarter' => $playByPlay['quarter'],
+                    'time_seconds' => $playByPlay['time_seconds'],
+                    'home_score' => $playByPlay['home_score'],
+                    'away_score' => $playByPlay['away_score'],
+                    'title' => $playByPlay['title'],
+                    'description' => $playByPlay['description'],
+                ]);
+
+                if (isset($playByPlay['tags']) && is_array($playByPlay['tags'])) {
+                    $tagIds = [];
+                    foreach ($playByPlay['tags'] as $tagId){
+                        $tag = Tag::where('id', $tagId)->first();
+                        if ($tag) {
+                            $tagIds[] = $tag->id;
+                        }
+                    }
+                    $play->tags()->attach($tagIds);
+                }
+
+                $plays = $plays->push($play);
+            }
+            DB::commit();
+
+            return $this->sendSuccessResponse('Play by play records created successfully', 201, 'success', $plays);
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            return $this->sendExceptionResponse('Failed to create play by play', 500, 'error', $exception);
+        }
+    }
+
+    public function getPlayByPlay(Request $request, $gameId){
+        $playByPlay = PlayByPlay::where('id', $gameId)->with(['user', 'tags', 'status'])->firstOrFail();
+        return $this->sendSuccessResponse('Play by play', 200, 'success', $playByPlay);
+
     }
 }

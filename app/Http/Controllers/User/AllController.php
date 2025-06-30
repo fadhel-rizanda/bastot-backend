@@ -108,7 +108,7 @@ class AllController extends Controller
             $data = Field::where('name', $request->name)->orderBy('created_at', 'desc')->get();
         } else if ($request->has('court_id')) {
             $data = Field::where('court_id', $request->court_id)->orderBy('created_at', 'desc')->get();
-        }else {
+        } else {
             $data = Field::orderBy('created_at', 'desc')->get();
         }
         return response()->json([
@@ -120,20 +120,28 @@ class AllController extends Controller
 
     public function schedules(Request $request)
     {
-        $data = [];
+        $query = Schedule::query()->orderBy('created_at', 'desc');
+
         if ($request->has('name')) {
-            $data = Schedule::where('name', $request->name)->orderBy('created_at', 'desc')->get();
-        } else if ($request->has('court_id')) {
-            $data = Schedule::whereHas('field', function ($query) use ($request) {
-                $query->whereHas('court', function ($query) use ($request) {
-                    $query->where('id', $request->court_id);
-                });
-            })->orderBy('created_at', 'desc')->get();
-        }else if($request->has('field_id')){
-            $data = Schedule::where('field_id', $request->field_id)->orderBy('created_at', 'desc')->get();
-        }else {
-            $data = Schedule::orderBy('created_at', 'desc')->get();
+            $query->where('name', $request->name);
         }
+
+        if ($request->has('field_id')) {
+            $query->where('field_id', $request->field_id);
+        }
+
+        if ($request->has('court_id')) {
+            $query->whereHas('field.court', function ($q) use ($request) {
+                $q->where('id', $request->court_id);
+            });
+        }
+
+        if ($request->boolean('is_available')) {
+            $query->where('is_available', $request->boolean('is_available'));
+        }
+
+        $data = $query->get();
+
         return response()->json([
             'status' => 'success',
             'message' => 'Schedule retrieved successfully',
