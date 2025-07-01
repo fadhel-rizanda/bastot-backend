@@ -424,8 +424,10 @@ class TeamController extends Controller
     {
         $fields = $request->validate([
             'role_id' => 'required|string',
+            'team_id' => 'required|integer|exists:teams,id',
+            'user_id' => 'required|integer|exists:users,id', // Tambahkan juga validasi ini
         ]);
-        $team = Team::find($request->team_id);
+        $team = Team::findOrFail($request->team_id);
 
         $userTeam = $team->userTeam()->where('user_id', $request->user_id)->first();
         if ($userTeam) {

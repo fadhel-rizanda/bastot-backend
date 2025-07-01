@@ -9,6 +9,7 @@ use App\Models\career\School;
 use App\Models\career\UserEducation;
 use App\Models\community\UserCommunity;
 use App\Models\court\Reservation;
+use App\Models\game\Highlight;
 use App\Models\game\PlayByPlay;
 use App\Models\game\Stats;
 use App\Models\game\UserTeam;

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\User;
 
 use App\Enums\Enums\Type;
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessHighlightUpload;
 use App\Models\court\Reservation;
 use App\Models\court\Schedule;
 use App\Models\game\Game;
+use App\Models\game\Highlight;
 use App\Models\game\Stats;
 use App\Models\game\Team;
 use App\Models\game\UserTeam;
@@ -14,10 +16,14 @@ use App\Models\Notification;
 use App\Models\Role;
 use App\Traits\ResponseAPI;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class GameController extends Controller
 {
@@ -303,11 +309,14 @@ class GameController extends Controller
             ];
         });
 
-
-        $homeTeam = $game->homeTeam->userTeam()->with(['user.stats' => function ($query) use ($gameId) {
-            $query->where('game_id', $gameId);
-        }])->get()->map(function ($userTeam) {
+        $homeTeam = $game->homeTeam->userTeam()->with([
+            'user.stats' => function ($query) use ($gameId) {
+                $query->where('game_id', $gameId);
+            },
+            'user.stats.highlights' // This is already correct
+        ])->get()->map(function ($userTeam) {
             $user = $userTeam->user;
+            $stat = $user->stats->first();
 
             return [
                 'id' => $user->id,
@@ -315,31 +324,42 @@ class GameController extends Controller
                 'email' => $user->email,
                 'role' => $userTeam->role_id,
                 'status' => $userTeam->status_id,
-                'stats' => optional($user->stats->first(), function ($stat) {
-                    return [
-                        'game_id' => $stat->game_id,
-                        'minutes' => $stat->minutes,
-                        'points' => $stat->points,
-                        'rebounds' => $stat->rebounds,
-                        'assists' => $stat->assists,
-                        'steals' => $stat->steals,
-                        'blocks' => $stat->blocks,
-                        'turnovers' => $stat->turnovers,
-                        '3pm' => $stat->{'3pm'},
-                        '3pa' => $stat->{'3pa'},
-                        '2pm' => $stat->{'2pm'},
-                        '2pa' => $stat->{'2pa'},
-                        'ftm' => $stat->ftm,
-                        'fta' => $stat->fta,
-                    ];
-                }),
+                'stats' => $stat ? [
+                    'game_id' => $stat->game_id,
+                    'minutes' => $stat->minutes,
+                    'points' => $stat->points,
+                    'rebounds' => $stat->rebounds,
+                    'assists' => $stat->assists,
+                    'steals' => $stat->steals,
+                    'blocks' => $stat->blocks,
+                    'turnovers' => $stat->turnovers,
+                    '3pm' => $stat->{'3pm'},
+                    '3pa' => $stat->{'3pa'},
+                    '2pm' => $stat->{'2pm'},
+                    '2pa' => $stat->{'2pa'},
+                    'ftm' => $stat->ftm,
+                    'fta' => $stat->fta,
+                    'notes' => $stat->notes ?? null,
+                    'highlights' => $stat->highlights->map(function ($highlight) {
+                        return [
+                            'id' => $highlight->id,
+                            'content' => $highlight->content,
+                            'notes' => $highlight->notes,
+                            'created_at' => $highlight->created_at,
+                        ];
+                    })->toArray()
+                ] : null,
             ];
         });
 
-        $awayTeam = $game->awayTeam->userTeam()->with(['user.stats' => function ($query) use ($gameId) {
-            $query->where('game_id', $gameId);
-        }])->get()->map(function ($userTeam) {
+        $awayTeam = $game->awayTeam->userTeam()->with([
+            'user.stats' => function ($query) use ($gameId) {
+                $query->where('game_id', $gameId);
+            },
+            'user.stats.highlights' // <--- REMOVE THE CLOSURE HERE!
+        ])->get()->map(function ($userTeam) {
             $user = $userTeam->user;
+            $stat = $user->stats->first();
 
             return [
                 'id' => $user->id,
@@ -347,24 +367,31 @@ class GameController extends Controller
                 'email' => $user->email,
                 'role' => $userTeam->role_id,
                 'status' => $userTeam->status_id,
-                'stats' => optional($user->stats->first(), function ($stat) {
-                    return [
-                        'game_id' => $stat->game_id,
-                        'minutes' => $stat->minutes,
-                        'points' => $stat->points,
-                        'rebounds' => $stat->rebounds,
-                        'assists' => $stat->assists,
-                        'steals' => $stat->steals,
-                        'blocks' => $stat->blocks,
-                        'turnovers' => $stat->turnovers,
-                        '3pm' => $stat->{'3pm'},
-                        '3pa' => $stat->{'3pa'},
-                        '2pm' => $stat->{'2pm'},
-                        '2pa' => $stat->{'2pa'},
-                        'ftm' => $stat->ftm,
-                        'fta' => $stat->fta,
-                    ];
-                }),
+                'stats' => $stat ? [
+                    'game_id' => $stat->game_id,
+                    'minutes' => $stat->minutes,
+                    'points' => $stat->points,
+                    'rebounds' => $stat->rebounds,
+                    'assists' => $stat->assists,
+                    'steals' => $stat->steals,
+                    'blocks' => $stat->blocks,
+                    'turnovers' => $stat->turnovers,
+                    '3pm' => $stat->{'3pm'},
+                    '3pa' => $stat->{'3pa'},
+                    '2pm' => $stat->{'2pm'},
+                    '2pa' => $stat->{'2pa'},
+                    'ftm' => $stat->ftm,
+                    'fta' => $stat->fta,
+                    'notes' => $stat->notes ?? null,
+                    'highlights' => $stat->highlights->map(function ($highlight) {
+                        return [
+                            'id' => $highlight->id,
+                            'content' => $highlight->content,
+                            'notes' => $highlight->notes,
+                            'created_at' => $highlight->created_at,
+                        ];
+                    })->toArray()
+                ] : null,
             ];
         });
 
@@ -508,5 +535,217 @@ class GameController extends Controller
             ->first();
 
         return $this->sendSuccessResponse('User stats retrieved successfully', 200, 'success', $stats);
+    }
+
+    public function createStatsv1(Request $request, $gameId)
+    {
+        $validator = Validator::make($request->all(), [
+            'stats' => 'required|array',
+            'stats.*.id' => 'nullable|integer',
+            'stats.*.player_id' => 'required|integer',
+            'stats.*.minutes' => 'required|integer',
+            'stats.*.points' => 'required|integer',
+            'stats.*.rebounds' => 'required|integer',
+            'stats.*.assists' => 'required|integer',
+            'stats.*.steals' => 'required|integer',
+            'stats.*.blocks' => 'required|integer',
+            'stats.*.turnovers' => 'required|integer',
+            'stats.*.3pm' => 'required|integer',
+            'stats.*.3pa' => 'required|integer',
+            'stats.*.2pm' => 'required|integer',
+            'stats.*.2pa' => 'required|integer',
+            'stats.*.ftm' => 'required|integer',
+            'stats.*.fta' => 'required|integer',
+            'stats.*.notes' => 'nullable|string',
+            'stats.*.highlights' => 'nullable|array',
+            'stats.*.highlights.*.id' => 'nullable|integer',
+            'stats.*.highlights.*.content' => 'nullable|file|mimes:mp4,webm,ogg|max:20480',
+            'stats.*.highlights.*.notes' => 'nullable|string',
+        ]);
+
+        $validator->after(function ($validator) use ($request) {
+            foreach ($request->input('stats', []) as $i => $stat) {
+                foreach ($stat['highlights'] ?? [] as $j => $highlight) {
+                    $hasId = isset($highlight['id']);
+                    $hasFile = isset($highlight['content']);
+
+                    if (!$hasId && !$hasFile) {
+                        $validator->errors()->add("stats.$i.highlights.$j.content", 'The content field is required if no ID is provided.');
+                        $validator->errors()->add("stats.$i.highlights.$j.id", 'The id field is required if no content is provided.');
+                    }
+                }
+            }
+        });
+
+        if ($validator->fails()) {
+            Log::warning('Validation failed', ['errors' => $validator->errors()]);
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $stats = [];
+
+            foreach ($request->stats as $stat) {
+                $currStat = Stats::updateOrCreate(
+                    ['game_id' => $gameId, 'user_id' => $stat['player_id']],
+                    Arr::only($stat, ['minutes', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers', '3pm', '3pa', '2pm', '2pa', 'ftm', 'fta', 'notes'])
+                );
+
+                $sentHighlightIds = [];
+                $highlights = [];
+
+                foreach ($stat['highlights'] ?? [] as $highlight) {
+                    $highlightId = $highlight['id'] ?? null;
+                    $highlightFile = $highlight['content'] ?? null;
+                    $highlightNotes = $highlight['notes'] ?? null;
+
+                    if ($highlightId === null && $highlightFile !== null) {
+                        $path = $highlightFile->storeAs('images/content', Str::uuid() . '.' . $highlightFile->getClientOriginalExtension(), 'public');
+                        $currHighlight = Highlight::create([
+                            'stat_id' => $currStat->id,
+                            'content' => $path,
+                            'notes' => $highlightNotes,
+                        ]);
+                        $highlights[] = $currHighlight;
+                    } elseif ($highlightId !== null && $highlightFile !== null) {
+                        $currHighlight = Highlight::find($highlightId);
+                        if ($currHighlight) {
+                            if (Storage::disk('public')->exists($currHighlight->content)) {
+                                Storage::disk('public')->delete($currHighlight->content);
+                            }
+                            $path = $highlightFile->storeAs('images/content', Str::uuid() . '.' . $highlightFile->getClientOriginalExtension(), 'public');
+                            $currHighlight->update([
+                                'content' => $path,
+                                'notes' => $highlightNotes,
+                            ]);
+                            $highlights[] = $currHighlight;
+                        }
+                        $sentHighlightIds[] = $highlightId;
+                    } elseif ($highlightId !== null && $highlightFile === null) {
+                        $currHighlight = Highlight::find($highlightId);
+                        if ($currHighlight) {
+                            $currHighlight->update(['notes' => $highlightNotes]);
+                            $highlights[] = $currHighlight;
+                            $sentHighlightIds[] = $highlightId;
+                        }
+                    }
+                }
+
+                // Cleanup: delete old highlights not in the new request
+                Highlight::where('stat_id', $currStat->id)
+                    ->whereNotIn('id', $sentHighlightIds)
+                    ->get()
+                    ->each(function ($old) {
+                        if (Storage::disk('public')->exists($old->content)) {
+                            Storage::disk('public')->delete($old->content);
+                        }
+                        $old->delete();
+                    });
+
+                $currStat->highlights = $highlights;
+                $stats[] = $currStat;
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'Stats created successfully', 'data' => $stats], 201);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Exception while creating stats', ['message' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to create stats'], 500);
+        }
+    }
+
+    public function createStats(Request $request, $gameId)
+    {
+        $validator = Validator::make($request->all(), [
+            'stats' => 'required|array',
+            'stats.*.id' => 'nullable|integer',
+            'stats.*.player_id' => 'required|integer',
+            'stats.*.minutes' => 'required|integer',
+            'stats.*.points' => 'required|integer',
+            'stats.*.rebounds' => 'required|integer',
+            'stats.*.assists' => 'required|integer',
+            'stats.*.steals' => 'required|integer',
+            'stats.*.blocks' => 'required|integer',
+            'stats.*.turnovers' => 'required|integer',
+            'stats.*.3pm' => 'required|integer',
+            'stats.*.3pa' => 'required|integer',
+            'stats.*.2pm' => 'required|integer',
+            'stats.*.2pa' => 'required|integer',
+            'stats.*.ftm' => 'required|integer',
+            'stats.*.fta' => 'required|integer',
+            'stats.*.notes' => 'nullable|string',
+            'stats.*.highlights' => 'nullable|array',
+            'stats.*.highlights.*.id' => 'nullable|integer',
+            'stats.*.highlights.*.content' => 'nullable|file|mimes:mp4,webm,ogg|max:20480',
+            'stats.*.highlights.*.notes' => 'nullable|string',
+        ]);
+
+        $validator->after(function ($validator) use ($request) {
+            foreach ($request->input('stats', []) as $i => $stat) {
+                foreach ($stat['highlights'] ?? [] as $j => $highlight) {
+                    $hasId = isset($highlight['id']);
+                    $hasFile = isset($highlight['content']);
+                    if (!$hasId && !$hasFile) {
+                        $validator->errors()->add("stats.$i.highlights.$j.content", 'The content is required if no ID is given.');
+                    }
+                }
+            }
+        });
+
+        if ($validator->fails()) {
+            return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $stats = [];
+
+            foreach ($request->stats as $stat) {
+                $currStat = Stats::updateOrCreate(
+                    ['game_id' => $gameId, 'user_id' => $stat['player_id']],
+                    Arr::only($stat, ['minutes', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers', '3pm', '3pa', '2pm', '2pa', 'ftm', 'fta', 'notes'])
+                );
+
+                $sentHighlightIds = [];
+
+                foreach ($stat['highlights'] ?? [] as $highlight) {
+                    $highlightId = $highlight['id'] ?? null;
+                    $highlightFile = $highlight['content'] ?? null;
+                    $highlightNotes = $highlight['notes'] ?? null;
+
+                    if ($highlightFile instanceof UploadedFile) {
+                        ProcessHighlightUpload::dispatch($currStat->id, $highlightId, $highlightFile, $highlightNotes);
+                        if ($highlightId) $sentHighlightIds[] = $highlightId;
+                    } elseif ($highlightId && !$highlightFile) {
+                        $existing = Highlight::find($highlightId);
+                        if ($existing) {
+                            $existing->update(['notes' => $highlightNotes]);
+                            $sentHighlightIds[] = $highlightId;
+                        }
+                    }
+                }
+
+                Highlight::where('stat_id', $currStat->id)
+                    ->whereNotIn('id', $sentHighlightIds)
+                    ->get()
+                    ->each(function ($highlight) {
+                        if (Storage::disk('public')->exists($highlight->content)) {
+                            Storage::disk('public')->delete($highlight->content);
+                        }
+                        $highlight->delete();
+                    });
+
+                $stats[] = $currStat;
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'Stats created successfully', 'data' => $stats], 201);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Failed to create stats', ['message' => $e->getMessage()]);
+            return response()->json(['message' => 'Server error occurred.'], 500);
+        }
     }
 }

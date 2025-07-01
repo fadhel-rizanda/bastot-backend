@@ -35,6 +35,6 @@ class Stats extends Model
     }
 
     public function highlights(){
-        return $this->hasMany(Highlight::class);
+        return $this->hasMany(Highlight::class, "stat_id");
     }
 }

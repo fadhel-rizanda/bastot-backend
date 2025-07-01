@@ -4,16 +4,19 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\game\Game;
+use App\Models\game\Highlight;
 use App\Models\game\Stats;
 use App\Traits\ResponseAPI;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class StatsController extends Controller
 {
     use ResponseAPI;
 
-    public function createStats(Request $request)
+    public function createStat(Request $request)
     {
         $fields = $request->validate([
             'game_id' => 'required|integer',
@@ -44,8 +47,8 @@ class StatsController extends Controller
             $stats = Stats::create($fields);
             DB::commit();
             return $this->sendSuccessResponse('Stats created successfully', 201, 'success', $stats);
-        }catch (\Exception $exception){
-        DB::rollBack();
+        } catch (\Exception $exception) {
+            DB::rollBack();
             return $this->sendExceptionResponse('Failed to create stats', 500, 'error', $exception);
         }
     }
@@ -79,9 +82,47 @@ class StatsController extends Controller
 
             DB::commit();
             return $this->sendSuccessResponse('Stats updated successfully', 200, 'success', $stats);
-        }catch (\Exception $exception){
-        DB::rollBack();
+        } catch (\Exception $exception) {
+            DB::rollBack();
             return $this->sendExceptionResponse('Failed to update stats', 500, 'error', $exception);
         }
+    }
+
+    public function createHighlights(Request $request, $statId){
+        $validator = Validator::make($request->all(), [
+            'content' => 'required|file|mimes:mp4,webm,ogg|max:20480',
+            'notes' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendErrorResponse($validator->errors(), 422, 'Validation failed', null);
+        }
+
+        DB::beginTransaction();
+        try {
+            $contentPath = null;
+            if ($request->hasFile('content')) {
+                $file = $request->file('content');
+                $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('images/content', $fileName, 'public');
+                $contentPath = $path;
+            } else {
+                return $this->sendErrorResponse($validator->errors(), 422, 'Validation failed', null);
+            }
+
+            Highlight::create([
+                'stat_id' => $statId,
+                'content' => $contentPath,
+                'notes' => $request->get('content'),
+            ]);
+
+            DB::commit();
+            return $this->sendSuccessResponse("Tournament created", 201, null, null);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendExceptionResponse("Failed to create Tournament", 500, null, $e);
+        }
+
+
     }
 }

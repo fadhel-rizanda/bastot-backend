@@ -79,6 +79,7 @@ Route::middleware('auth:api')->group(callback: function () {
         Route::get("/{gameId}/stats", [GameController::class, 'getStats']);
         Route::get("/{gameId}/details", [GameController::class, 'gameDetail']);
         Route::get("/{gameId}/stats/{userId}", [GameController::class, 'getUserStats']);
+        Route::post("/{gameId}/stats/highlights", [GameController::class, 'createStats']);
     });
 
     Route::prefix('community')->group(function () {
@@ -128,8 +129,9 @@ Route::middleware(['auth:api', isCourtOwner::class])->group(function () {
     Route::post("/fields", [CourtOwnerController::class, 'createField']);
     Route::post("/schedule", [CourtOwnerController::class, 'createScheduleByList']);
     Route::post("/reservation", [CourtOwnerController::class, 'createReservations']);
-    Route::post("/games/{gameId}/stats/{playerId}", [StatsController::class, 'createStats']);
-    Route::post("/games/stats/", [StatsController::class, 'createStats']);
+    Route::post("/games/{gameId}/stats/{playerId}", [StatsController::class, 'createStat']);
+    Route::post("/games/stats/", [StatsController::class, 'createStat']);
+    Route::post("/games/stats/{statId}/highlights", [StatsController::class, 'createHighlights']);
     Route::put("/games/{gameId}/stats/{playerId}", [StatsController::class, 'updateStats']);
 });
 

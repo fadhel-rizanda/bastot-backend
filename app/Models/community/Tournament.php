@@ -13,6 +13,10 @@ class Tournament extends Model
 {
     protected $table = 'tournaments';
     protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'poster',
         'event_id',
         'court_id'
     ];

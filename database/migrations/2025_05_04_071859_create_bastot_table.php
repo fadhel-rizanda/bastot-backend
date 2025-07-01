@@ -96,6 +96,10 @@ return new class extends Migration {
 
         Schema::create('tournaments', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->text('description');
+            $table->decimal('price')->nullable()->default(0);
+            $table->string('poster')->nullable();
             $table->foreignId('event_id')->constrained('events')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('court_id')->constrained('courts')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
@@ -283,7 +287,8 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('stat_id')->constrained('stats')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('content')->nullable(false);
-            $table->string('type')->nullable(false);
+            $table->text('notes')->nullable();
+            $table->timestamps();
         });
 
         Schema::create('workout_plan', function (Blueprint $table) {
@@ -402,6 +407,13 @@ return new class extends Migration {
             $table->foreignId('review_id')->constrained('reviews')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
             $table->primary(['tournament_id', 'review_id']);
+        });
+
+        Schema::create('highlight_review', function (Blueprint $table) {
+            $table->foreignId('highlight_id')->constrained('highlights')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('review_id')->constrained('reviews')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->timestamps();
+            $table->primary(['highlight_id', 'review_id']);
         });
 
         Schema::create('community_tag', function (Blueprint $table) {

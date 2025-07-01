@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class CommunityController extends Controller
 {
@@ -164,6 +165,11 @@ class CommunityController extends Controller
     public function createTournament(Request $request, $eventId)
     {
         $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'nullable|numeric',
+            'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+
             'court_id' => 'required|integer',
             'tags' => 'nullable|array',
             'tags.*' => 'nullable|integer',
@@ -178,7 +184,20 @@ class CommunityController extends Controller
 
         DB::beginTransaction();
         try {
+            $posterPath = null;
+            if ($request->hasFile('poster')) {
+                $file = $request->file('poster');
+                $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('images/poster', $fileName, 'public');
+                $posterPath = $path;
+            }
+
             $tournament = Tournament::create([
+                'name' => $request->name,
+                'description' => $request->description,
+                'price' => $request->price,
+               'poster' => $posterPath,
+
                'event_id' => $eventId,
                'court_id' => $request->court_id,
             ]);
