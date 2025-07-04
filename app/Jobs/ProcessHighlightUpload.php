@@ -60,7 +60,7 @@ class ProcessHighlightUpload implements ShouldQueue
         protected ?string $notes = null,
     ) {}
 
-    public function handle(): void
+    public function handlev2(): void
     {
         if (!Storage::disk('local')->exists($this->filePath)) return;
 
@@ -89,5 +89,43 @@ class ProcessHighlightUpload implements ShouldQueue
             'content' => $newPath,
             'notes' => $this->notes,
         ]);
+    }
+
+    public function handle(): void
+    {
+        $newPath = null;
+
+        if ($this->filePath && Storage::disk('local')->exists($this->filePath)) {
+            $ext = pathinfo($this->filePath, PATHINFO_EXTENSION);
+            $newName = Str::uuid() . '.' . $ext;
+            $newPath = 'videos/highlights/' . $newName;
+
+            Storage::disk('public')->put($newPath, Storage::disk('local')->get($this->filePath));
+            Storage::disk('local')->delete($this->filePath); // cleanup
+        }
+
+        if ($this->highlightId) {
+            $highlight = Highlight::find($this->highlightId);
+            if ($highlight) {
+                if ($newPath && Storage::disk('public')->exists($highlight->content)) {
+                    Storage::disk('public')->delete($highlight->content);
+                }
+
+                $highlight->update([
+                    'content' => $newPath ?? $highlight->content,
+                    'notes' => $this->notes,
+                ]);
+
+                return;
+            }
+        }
+
+        if ($newPath) {
+            Highlight::create([
+                'stat_id' => $this->statId,
+                'content' => $newPath,
+                'notes' => $this->notes,
+            ]);
+        }
     }
 }

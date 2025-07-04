@@ -751,7 +751,7 @@ class GameController extends Controller
         }
     }
 
-    public function createStats(Request $request, $gameId)
+    public function createStatsv3(Request $request, $gameId)
     {
         $validator = Validator::make($request->all(), [
             'stats' => 'required|array',
@@ -831,4 +831,104 @@ class GameController extends Controller
             return response()->json(['message' => 'Server error occurred.'], 500);
         }
     }
+
+    public function createStats(Request $request, $gameId)
+    {
+        $validator = Validator::make($request->all(), [
+            'stats' => 'required|array',
+            'stats.*.player_id' => 'required|integer',
+            'stats.*.minutes' => 'required|integer',
+            'stats.*.points' => 'required|integer',
+            'stats.*.rebounds' => 'required|integer',
+            'stats.*.assists' => 'required|integer',
+            'stats.*.steals' => 'required|integer',
+            'stats.*.blocks' => 'required|integer',
+            'stats.*.turnovers' => 'required|integer',
+            'stats.*.3pm' => 'required|integer',
+            'stats.*.3pa' => 'required|integer',
+            'stats.*.2pm' => 'required|integer',
+            'stats.*.2pa' => 'required|integer',
+            'stats.*.ftm' => 'required|integer',
+            'stats.*.fta' => 'required|integer',
+            'stats.*.notes' => 'nullable|string',
+            'stats.*.highlights' => 'nullable|array',
+            'stats.*.highlights.*.id' => 'nullable|integer',
+            'stats.*.highlights.*.content' => 'nullable|file|mimes:mp4,webm,ogg|max:20480',
+            'stats.*.highlights.*.notes' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $stats = [];
+
+            foreach ($request->stats as $stat) {
+                $currStat = Stats::updateOrCreate(
+                    ['game_id' => $gameId, 'user_id' => $stat['player_id']],
+                    Arr::only($stat, [
+                        'minutes', 'points', 'rebounds', 'assists', 'steals',
+                        'blocks', 'turnovers', '3pm', '3pa', '2pm', '2pa', 'ftm', 'fta', 'notes'
+                    ])
+                );
+
+                $sentHighlightIds = [];
+
+                foreach ($stat['highlights'] ?? [] as $highlight) {
+                    $highlightId = $highlight['id'] ?? null;
+                    $highlightNotes = $highlight['notes'] ?? null;
+                    $file = $highlight['content'] ?? null;
+
+                    $tempPath = null;
+                    if ($file instanceof UploadedFile) {
+                        $tempPath = $file->store('temp_uploads');
+                    }
+
+                    // Dispatch to queue for background processing
+                    // This avoids Octane serialization issues completely
+                    ProcessHighlightUpload::dispatch(
+                        $currStat->id,
+                        $highlightId,
+                        $tempPath,
+                        $highlightNotes
+                    );
+
+                    if ($highlightId) {
+                        $sentHighlightIds[] = $highlightId;
+                    }
+                }
+
+                // Clean up highlights that weren't sent
+                Highlight::where('stat_id', $currStat->id)
+                    ->whereNotIn('id', $sentHighlightIds)
+                    ->get()
+                    ->each(function ($highlight) {
+                        if (Storage::disk('public')->exists($highlight->content)) {
+                            Storage::disk('public')->delete($highlight->content);
+                        }
+                        $highlight->delete();
+                    });
+
+                $stats[] = $currStat;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Stats created successfully. Highlights are being processed in background.',
+                'data' => $stats
+            ], 201);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            \Log::error('Failed to create stats', ['message' => $e->getMessage()]);
+            return response()->json(['message' => 'Server error occurred.'], 500);
+        }
+    }
 }
+
