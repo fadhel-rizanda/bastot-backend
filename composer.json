@@ -13,6 +13,7 @@
         "ext-http": "*",
         "ichtrojan/laravel-otp": "^2.0",
         "laravel/framework": "^12.0",
+        "laravel/octane": "^2.10",
         "laravel/passport": "^12.4",
         "laravel/tinker": "^2.10.1",
         "predis/predis": "^2.3",

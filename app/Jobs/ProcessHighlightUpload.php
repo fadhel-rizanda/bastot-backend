@@ -6,6 +6,7 @@ use App\Models\game\Highlight;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
@@ -17,24 +18,58 @@ class ProcessHighlightUpload implements ShouldQueue
 //    use Queueable;
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Create a new job instance.
-     */
-    public function __construct(int $statId, ?int $highlightId, UploadedFile $file, ?string $notes = null)
-    {
-        $this->statId = $statId;
-        $this->highlightId = $highlightId;
-        $this->file = $file;
-        $this->notes = $notes;
-    }
+//    public function __construct(int $statId, ?int $highlightId, UploadedFile $file, ?string $notes = null)
+//     {
+//         $this->statId = $statId;
+//         $this->highlightId = $highlightId;
+//         $this->file = $file;
+//         $this->notes = $notes;
+//     }
+//
+//    public function handle(): void
+//    {
+//        $fileName = Str::uuid() . '.' . $this->file->getClientOriginalExtension();
+//        $path = $this->file->storeAs('videos/highlights', $fileName, 'public');
+//
+//        if ($this->highlightId) {
+//            $highlight = Highlight::find($this->highlightId);
+//            if ($highlight) {
+//                if (Storage::disk('public')->exists($highlight->content)) {
+//                    Storage::disk('public')->delete($highlight->content);
+//                }
+//                $highlight->update([
+//                    'content' => $path,
+//                    'notes' => $this->notes,
+//                ]);
+//                return;
+//            }
+//        }
+//
+//        Highlight::create([
+//           'stat_id' => $this->statId,
+//           'content' => $path,
+//           'notes' => $this->notes,
+//        ]);
+//    }
 
-    /**
-     * Execute the job.
-     */
+//    v2
+    public function __construct(
+        protected int $statId,
+        protected ?int $highlightId,
+        protected ?string $filePath,
+        protected ?string $notes = null,
+    ) {}
+
     public function handle(): void
     {
-        $fileName = Str::uuid() . '.' . $this->file->getClientOriginalExtension();
-        $path = $this->file->storeAs('videos/highlights', $fileName, 'public');
+        if (!Storage::disk('local')->exists($this->filePath)) return;
+
+        $ext = pathinfo($this->filePath, PATHINFO_EXTENSION);
+        $newName = Str::uuid() . '.' . $ext;
+        $newPath = 'videos/highlights/' . $newName;
+
+        Storage::disk('public')->put($newPath, Storage::disk('local')->get($this->filePath));
+        Storage::disk('local')->delete($this->filePath); // cleanup
 
         if ($this->highlightId) {
             $highlight = Highlight::find($this->highlightId);
@@ -43,7 +78,6 @@ class ProcessHighlightUpload implements ShouldQueue
                     Storage::disk('public')->delete($highlight->content);
                 }
                 $highlight->update([
-                    'content' => $path,
                     'notes' => $this->notes,
                 ]);
                 return;
@@ -51,9 +85,9 @@ class ProcessHighlightUpload implements ShouldQueue
         }
 
         Highlight::create([
-           'stat_id' => $this->statId,
-           'content' => $path,
-           'notes' => $this->notes,
+            'stat_id' => $this->statId,
+            'content' => $newPath,
+            'notes' => $this->notes,
         ]);
     }
 }
