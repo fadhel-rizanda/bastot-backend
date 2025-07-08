@@ -303,11 +303,11 @@ class GameController extends Controller
                 'description' => $play->description,
                 'created_at' => $play->created_at,
                 'updated_at' => $play->updated_at,
-                'user' => [
+                'user' => $play->user ? [
                     'id' => $play->user->id,
                     'name' => $play->user->name,
                     'profile_picture' => $play->user->profile_picture,
-                ],
+                ] : null,
             ];
         });
 
@@ -315,7 +315,7 @@ class GameController extends Controller
             'user.stats' => function ($query) use ($gameId) {
                 $query->where('game_id', $gameId);
             },
-            'user.stats.highlights' // This is already correct
+            'user.stats.highlights'
         ])->get()->map(function ($userTeam) {
             $user = $userTeam->user;
             $stat = $user->stats->first();
@@ -358,7 +358,7 @@ class GameController extends Controller
             'user.stats' => function ($query) use ($gameId) {
                 $query->where('game_id', $gameId);
             },
-            'user.stats.highlights' // <--- REMOVE THE CLOSURE HERE!
+            'user.stats.highlights'
         ])->get()->map(function ($userTeam) {
             $user = $userTeam->user;
             $stat = $user->stats->first();

@@ -184,7 +184,6 @@ class AuthController extends Controller
         );
     }
 
-
     public function refreshToken(Request $request)
     {
         $validator = Validator::make($request->all(), [
