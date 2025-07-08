@@ -555,9 +555,9 @@ class TeamController extends Controller
         $validator = Validator::make($request->all(), [
             'play_by_play' => 'required|array',
 
-            'play_by_play.*.user_id' => 'required|integer',
-            'play_by_play.*.team_id' => 'required|integer',
-            'play_by_play.*.status_id' => 'nullable|integer',
+            'play_by_play.*.player_id' => 'nullable|integer',
+            'play_by_play.*.team_id' => 'nullable|integer',
+            'play_by_play.*.status_id' => 'nullable',
 
             'play_by_play.*.quarter' => 'required|integer',
             'play_by_play.*.time_seconds' => 'required|integer',
@@ -581,7 +581,7 @@ class TeamController extends Controller
             foreach ($request->play_by_play as $playByPlay){
                 $play = PlayByPlay::create([
                     'game_id' => $gameId,
-                    'user_id' => $playByPlay['user_id'],
+                    'user_id' => $playByPlay['player_id'],
                     'team_id' => $playByPlay['team_id'],
                     'status_id' => $playByPlay['status_id'],
 

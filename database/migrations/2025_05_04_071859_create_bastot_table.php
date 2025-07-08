@@ -359,11 +359,10 @@ return new class extends Migration {
 
         Schema::create('play_by_play', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('game_id')->constrained('games');
-            $table->foreignId('team_id')->constrained('teams');
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('game_id')->nullable(false)->constrained('games');
+            $table->foreignId('team_id')->nullable()->constrained('teams');
+            $table->foreignId('user_id')->nullable()->constrained('users');
             $table->foreignId('status_id')->nullable()->constrained('statuses');
-
             $table->integer('quarter')->nullable(false);
             $table->integer('time_seconds')->nullable(false);
             $table->integer('home_score')->nullable(false);

@@ -6,7 +6,7 @@ namespace App\Actions;
 use App\Jobs\ProcessHighlightUpload;
 use App\Models\game\Highlight;
 
-class HighlightTasks
+class HighlightTasks // This class handles the actions related to highlights, such as uploading and updating highlights. TAPI BELUM DIGUNAKAN
 {
     public static function upload(int $statId, ?int $highlightId, string $tempPath, ?string $notes): void
     {

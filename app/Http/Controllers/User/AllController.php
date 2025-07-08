@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Enums\Enums\CacheDuration;
 use App\Http\Controllers\Controller;
 use App\Models\community\Community;
 use App\Models\community\Event;
@@ -13,9 +14,12 @@ use App\Models\game\Team;
 use App\Models\Notification;
 use App\Models\Review;
 use App\Models\Role;
+use App\Models\Status;
+use App\Models\Tag;
 use App\Models\User;
 use App\Traits\ResponseAPI;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -25,47 +29,73 @@ class AllController extends Controller
 
     public function users(Request $request)
     {
-        $data = [];
-        if ($request->has('name')) {
-            $data = User::where('name', $request->name)->where('id', '!=', $request->user()->id)->orderBy('created_at', 'desc')->get();
-        } else {
-            $data = User::where('id', '!=', $request->user()->id)->orderBy('created_at', 'desc')->get();
-        }
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Users retrieved successfully',
-            'data' => $data
-        ], 200);
+        $cacheKey = 'users:' . ($request->has('name') ? 'name:' . $request->name : 'all') . ':user:' . $request->user()->id;
+
+        $data = Cache::remember($cacheKey, CacheDuration::MEDIUM->value, function () use ($request) {
+            if( $request->has('name')) {
+                return User::where('name', $request->name)
+                    ->where('id', '!=', $request->user()->id)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            } else {
+                return User::where('id', '!=', $request->user()->id)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            }
+        });
+        return $this->sendSuccessResponse("Users retrieved successfully", 200, null, $data);
     }
 
     public function roles(Request $request)
     {
-        $data = [];
-        if ($request->has('type')) {
-            $data = Role::where('type', $request->type)->orderBy('created_at', 'desc')->get();
-        } else {
-            $data = Role::orderBy('created_at', 'desc')->get();
-        }
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Roles retrieved successfully',
-            'data' => $data
-        ], 200);
+        $cacheKey = 'roles:' . ($request->has('type') ? 'type:' . $request->type : 'all');
+        $data = Cache::remember($cacheKey, CacheDuration::MEDIUM->value, function () use ($request) {
+            if ($request->has('type')) {
+                return Role::where('type', $request->type)->orderBy('created_at', 'desc')->get();
+            } else {
+                return Role::orderBy('created_at', 'desc')->get();
+            }
+        });
+        return $this->sendSuccessResponse("Roles retrieved successfully", 200, null, $data);
+    }
+
+    public function status(Request $request)
+    {
+        $cacheKey = 'status:' . ($request->has('type') ? 'type:' . $request->type : 'all');
+        $data = Cache::remember($cacheKey, CacheDuration::MEDIUM->value, function () use ($request) {
+            if ($request->has('type')) {
+                return Status::where('type', $request->type)->orderBy('created_at', 'desc')->get();
+            } else {
+                return Status::orderBy('created_at', 'desc')->get();
+            }
+        });
+        return $this->sendSuccessResponse("Status retrieved successfully", 200, null, $data);
+    }
+
+    public function tags(Request $request)
+    {
+        $cacheKey = 'tags:' . ($request->has('type') ? 'type:' . $request->type : 'all');
+        $data = Cache::remember($cacheKey, CacheDuration::MEDIUM->value, function () use ($request) {
+            if ($request->has('type')) {
+                return Tag::where('type', $request->type)->orderBy('created_at', 'desc')->get();
+            } else {
+                return Tag::orderBy('created_at', 'desc')->get();
+            }
+        });
+        return $this->sendSuccessResponse("Tags retrieved successfully", 200, null, $data);
     }
 
     public function teams(Request $request)
     {
-        $data = [];
-        if ($request->has('name')) {
-            $data = Team::where('name', $request->name)->orderBy('created_at', 'desc')->get();
-        } else {
-            $data = Team::orderBy('created_at', 'desc')->get();
-        }
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Teams retrieved successfully',
-            'data' => $data
-        ], 200);
+        $cacheKey = 'teams:' . ($request->has('name') ? 'name:' . $request->name : 'all');
+        $data = Cache::remember($cacheKey, CacheDuration::MEDIUM->value, function () use ($request) {
+            if ($request->has('name')) {
+                return Team::where('name', $request->name)->orderBy('created_at', 'desc')->get();
+            } else {
+                return Team::orderBy('created_at', 'desc')->get();
+            }
+        });
+        return $this->sendSuccessResponse("Teams retrieved successfully", 200, null, $data);
     }
 
     public function myNotifications(Request $request)
@@ -85,74 +115,84 @@ class AllController extends Controller
             'unread_count' => $unread
         ];
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Notifications retrieved successfully',
-            'data' => $data
-        ], 200);
+        return $this->sendSuccessResponse("Notifications retrieved successfully", 200, null, $data);
     }
 
     public function courts(Request $request)
     {
-        $data = [];
-        if ($request->has('name')) {
-            $data = Court::where('name', $request->name)->orderBy('created_at', 'desc')->get();
-        } else {
-            $data = Court::orderBy('created_at', 'desc')->get();
-        }
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Court retrieved successfully',
-            'data' => $data
-        ], 200);
+        $cacheKey = 'courts:' . ($request->has('name') ? 'name:' . $request->name : 'all');
+        $data = Cache::remember($cacheKey, CacheDuration::MEDIUM->value, function () use ($request) {
+            if ($request->has('name')) {
+                return Court::where('name', $request->name)->orderBy('created_at', 'desc')->get();
+            } else {
+                return Court::orderBy('created_at', 'desc')->get();
+            }
+        });
+        return $this->sendSuccessResponse("Courts retrieved successfully", 200, null, $data);
     }
 
     public function fields(Request $request)
     {
-        $data = [];
-        if ($request->has('name')) {
-            $data = Field::where('name', $request->name)->orderBy('created_at', 'desc')->get();
-        } else if ($request->has('court_id')) {
-            $data = Field::where('court_id', $request->court_id)->orderBy('created_at', 'desc')->get();
-        } else {
-            $data = Field::orderBy('created_at', 'desc')->get();
-        }
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Fields retrieved successfully',
-            'data' => $data
-        ], 200);
+        $cacheKey = 'fields:' . ($request->has('name') ? 'name:' . $request->name : ($request->has('court_id') ? 'court_id:' . $request->court_id : 'all'));
+        $data = Cache::remember($cacheKey, CacheDuration::MEDIUM->value, function () use ($request) {
+            if ($request->has('name')) {
+                return Field::where('name', $request->name)->orderBy('created_at', 'desc')->get();
+            } else if ($request->has('court_id')) {
+                return Field::where('court_id', $request->court_id)->orderBy('created_at', 'desc')->get();
+            } else {
+                return Field::orderBy('created_at', 'desc')->get();
+            }
+        });
+        return $this->sendSuccessResponse("Fields retrieved successfully", 200, null, $data);
     }
 
     public function schedules(Request $request)
     {
-        $query = Schedule::query()->orderBy('created_at', 'desc');
+        $cacheKeyParts = ['schedules'];
 
         if ($request->has('name')) {
-            $query->where('name', $request->name);
+            $cacheKeyParts[] = 'name:' . $request->name;
         }
 
         if ($request->has('field_id')) {
-            $query->where('field_id', $request->field_id);
+            $cacheKeyParts[] = 'field:' . $request->field_id;
         }
 
         if ($request->has('court_id')) {
-            $query->whereHas('field.court', function ($q) use ($request) {
-                $q->where('id', $request->court_id);
-            });
+            $cacheKeyParts[] = 'court:' . $request->court_id;
         }
 
-        if ($request->boolean('is_available')) {
-            $query->where('is_available', $request->boolean('is_available'));
+        if ($request->has('is_available')) {
+            $cacheKeyParts[] = 'available:' . ($request->boolean('is_available') ? '1' : '0');
         }
 
-        $data = $query->get();
+        $cacheKey = implode('|', $cacheKeyParts);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Schedule retrieved successfully',
-            'data' => $data
-        ], 200);
+        $data = Cache::remember($cacheKey, CacheDuration::SHORT->value, function () use ($request) {
+            $query = Schedule::query()->orderBy('created_at', 'desc');
+
+            if ($request->has('name')) {
+                $query->where('name', $request->name);
+            }
+
+            if ($request->has('field_id')) {
+                $query->where('field_id', $request->field_id);
+            }
+
+            if ($request->has('court_id')) {
+                $query->whereHas('field.court', function ($q) use ($request) {
+                    $q->where('id', $request->court_id);
+                });
+            }
+
+            if ($request->boolean('is_available')) {
+                $query->where('is_available', true);
+            }
+
+            return $query->get();
+        });
+
+        return $this->sendSuccessResponse("Schedules retrieved successfully", 200, null, $data);
     }
 
     public function getCommunities(Request $request)

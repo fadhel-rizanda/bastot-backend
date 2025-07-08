@@ -65,6 +65,8 @@ Route::middleware('auth:api')->group(callback: function () {
     Route::prefix('all')->group(function () {
         Route::get("/users", [AllController::class, 'users']);
         Route::get('/roles', [AllController::class, 'roles']);
+        Route::get('/status', [AllController::class, 'status']);
+        Route::get('/tags', [AllController::class, 'tags']);
         Route::get('/teams', [AllController::class, 'teams']);
         Route::get('/courts', [AllController::class, 'courts']);
         Route::get('/fields', [AllController::class, 'fields']);
