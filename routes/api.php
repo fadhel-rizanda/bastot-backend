@@ -141,6 +141,16 @@ Route::get('/game/roles', [GameController::class, 'roles'])->middleware('auth:ap
 
 Route::get('/test', [AuthController::class, 'test']);
 Route::prefix('/test')->group(function () {
+    Route::post('/', [\App\Http\Controllers\TestController::class, 'post']);
    Route::get('/token', [\App\Http\Controllers\DriveController::class, 'token']);
    Route::post('/store', [\App\Http\Controllers\DriveController::class, 'store']);
+});
+
+use Illuminate\Http\Request;
+
+Route::post('/test-message', function (Request $request) {
+    $message = $request->input('message');
+    broadcast(new \App\Events\MessageSent($message));
+
+    return response()->json(['status' => 'Message sent', 'message' => $message]);
 });

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Enums\Enums\CacheDuration;
+use App\Enums\CacheDuration;
 use App\Http\Controllers\Controller;
 use App\Models\community\Community;
 use App\Models\community\Event;

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\Enums\Type;
+use App\Enums\Type;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model

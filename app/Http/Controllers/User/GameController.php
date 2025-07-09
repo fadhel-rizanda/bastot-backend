@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Actions\HighlightTasks;
-use App\Enums\Enums\Type;
+use App\Enums\Type;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessHighlightUpload;
 use App\Models\court\Reservation;
@@ -25,7 +24,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Laravel\Octane\Facades\Octane;
 
 class GameController extends Controller
 {

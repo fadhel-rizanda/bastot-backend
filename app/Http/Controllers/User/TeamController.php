@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Enums\Enums\Type;
+use App\Enums\Type;
 use App\Http\Controllers\Controller;
 use App\Models\game\PlayByPlay;
 use App\Models\game\Team;
