@@ -44,4 +44,11 @@ class MessageSent implements ShouldBroadcast
             'sent_at' => now()->toDateTimeString(),
         ];
     }
+
+    /* tanpa broadcastAs
+     * Echo.channel('messages')
+     *  .listen('MessageSent', (e) => {  // BEDA DISINI, dia bakal pake bawaan event(nama event)
+     *  console.log('Pesan diterima:', e);
+     * });
+    */
 }

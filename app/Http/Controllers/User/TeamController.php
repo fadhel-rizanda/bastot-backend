@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Enums\Type;
+use App\Events\NotificationSent;
 use App\Http\Controllers\Controller;
 use App\Models\game\PlayByPlay;
 use App\Models\game\Team;
@@ -95,15 +96,15 @@ class TeamController extends Controller
                 'status_id' => 'ACTIVE',
             ]);
 
-            Notification::create([
-                'user_id' => $userId,
-                'type' => Type::TEAM,
-                'title' => 'Team Created',
-                'message' => "You have successfully created a new team named '{$team->name}' with initial '{$team->initial}'.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $userId,
+                Type::TEAM,
+                'Team Created',
+                "You have successfully created a new team named '{$team->name}' with initial '{$team->initial}'.",
+                [
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
             DB::commit();
             return $this->sendSuccessResponse('Team created successfully', 201, 'success', $team);
@@ -131,16 +132,16 @@ class TeamController extends Controller
                 'status_id' => 'ACTIVE',
             ]);
 
-            Notification::create([
-                'user_id' => $userId,
-                'type' => Type::TEAM,
-                'title' => 'Joined Team',
-                'message' => "You have successfully joined the team '{$team->name}' as {$fields['role']}.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $userId,
+                Type::TEAM,
+                'Joined Team',
+                "You have successfully joined the team '{$team->name}' as {$fields['role']}.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
             DB::commit();
             return $this->sendSuccessResponse('Successfully joined the team', 200, 'success', $team);
@@ -172,27 +173,27 @@ class TeamController extends Controller
                 'status_id' => 'INACTIVE',
             ]);
 
-            Notification::create([
-                'user_id' => $userId,
-                'type' => Type::TEAM,
-                'title' => 'Left Team',
-                'message' => "You have left the team '{$team->name}'.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $userId,
+                Type::TEAM,
+                'Left Team',
+                "You have left the team '{$team->name}'.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
-            Notification::create([
-                'user_id' => $team->team_owner_id,
-                'type' => Type::TEAM,
-                'title' => 'Player Left Team',
-                'message' => "User ID {$userId} has left your team '{$team->name}'.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $team->team_owner_id,
+                Type::TEAM,
+                'Player Left Team',
+                "User ID {$userId} has left your team '{$team->name}'.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
             DB::commit();
 
@@ -231,27 +232,26 @@ class TeamController extends Controller
                 'status_id' => 'ACTIVE',
             ]);
 
-            Notification::create([
-                'user_id' => $userId,
-                'type' => Type::TEAM,
-                'title' => 'Rejoined Team',
-                'message' => "You have successfully rejoined the team '{$team->name}'.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $userId,
+                Type::TEAM,
+                'Rejoined Team',
+                "You have successfully rejoined the team '{$team->name}'.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
-
-            Notification::create([
-                'user_id' => $team->team_owner_id,
-                'type' => Type::TEAM,
-                'title' => 'Player Rejoined',
-                'message' => "User ID {$userId} has rejoined your team '{$team->name}'.",
-                'data' => [
+            ));
+            broadcast(new NotificationSent(
+                $team->team_owner_id,
+                Type::TEAM,
+                'Player Rejoined',
+                "User ID {$userId} has rejoined your team '{$team->name}'.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
             DB::commit();
             return $this->sendSuccessResponse('Successfully rejoined the team', 200, 'success', $team);
@@ -291,27 +291,27 @@ class TeamController extends Controller
                 'status_id' => 'ACTIVE',
             ]);
 
-            Notification::create([
-                'user_id' => $userId,
-                'type' => Type::GAME,
-                'title' => 'Team Activation',
-                'message' => "You have been reactivated in team {$team->name}.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $userId,
+                Type::GAME,
+                'Team Activation',
+                "You have been reactivated in team {$team->name}.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
-            Notification::create([
-                'user_id' => $request->user()->id,
-                'type' => Type::GAME,
-                'title' => 'Team Activation Log',
-                'message' => "You reactivated user ID {$userId} in team {$team->name}.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $request->user()->id,
+                Type::GAME,
+                'Team Activation Log',
+                "You reactivated user ID {$userId} in team {$team->name}.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
             DB::commit();
             return $this->sendSuccessResponse('Successfully activated the player in the team', 200, 'success', $team);
@@ -350,27 +350,27 @@ class TeamController extends Controller
                 'status_id' => 'DEACTIVATED',
             ]);
 
-            Notification::create([
-                'user_id' => $userId,
-                'type' => Type::TEAM,
-                'title' => 'Removed from Team',
-                'message' => "You have been removed from the team '{$team->name}' by the team owner.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $userId,
+                Type::TEAM,
+                'Removed from Team',
+                "You have been removed from the team '{$team->name}' by the team owner.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
-            Notification::create([
-                'user_id' => $team->team_owner_id,
-                'type' => Type::TEAM,
-                'title' => 'Player Removed',
-                'message' => "You have removed a player (User ID: {$userId}) from the team '{$team->name}'.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $team->team_owner_id,
+                Type::TEAM,
+                'Player Removed',
+                "You have removed a player (User ID: {$userId}) from the team '{$team->name}'.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
             DB::commit();
             return $this->sendSuccessResponse('Successfully kicked the player from the team', 200, 'success', $team);
@@ -444,27 +444,27 @@ class TeamController extends Controller
                 'status_id' => 'INVITED',
             ]);
 
-            Notification::create([
-                'user_id' => $request->user()->id,
-                'type' => Type::GAME,
-                'title' => 'Team Invitation',
-                'message' => "You have sent an invitation to user ID {$request->user_id} to join team ID {$request->team_id} as {$request->role_id}.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $request->user()->id,
+                Type::GAME,
+                'Team Invitation',
+                "You have sent an invitation to user ID {$request->user_id} to join team ID {$request->team_id} as {$request->role_id}.",
+                [
                     'user_id' => $request->user_id,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
-            Notification::create([
-                'user_id' => $request->user_id,
-                'type' => Type::GAME,
-                'title' => 'Team Invitation',
-                'message' => "You have been invited by user ID {$request->user()->id} to join team ID {$request->team_id} as {$request->role_id}.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $request->user_id,
+                Type::GAME,
+                'Team Invitation',
+                "You have been invited by user ID {$request->user()->id} to join team ID {$request->team_id} as {$request->role_id}.",
+                [
                     'user_id' => $request->user_id,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
             DB::commit();
             return $this->sendSuccessResponse('Successfully invited player to the team', 200, 'success', $team);
@@ -498,27 +498,27 @@ class TeamController extends Controller
                 'status_id' => 'ACTIVE',
             ]);
 
-            Notification::create([
-                'user_id' => $userId,
-                'type' => Type::TEAM,
-                'title' => 'Invitation Accepted',
-                'message' => "You have successfully accepted the invitation to join the team '{$team->name}'.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $userId,
+                Type::TEAM,
+                'Invitation Accepted',
+                "You have successfully accepted the invitation to join the team '{$team->name}'.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
-            Notification::create([
-                'user_id' => $team->team_owner_id,
-                'type' => Type::TEAM,
-                'title' => 'Player Joined',
-                'message' => "User ID {$userId} has accepted your invitation and joined the team '{$team->name}'.",
-                'data' => [
+            broadcast(new NotificationSent(
+                $team->team_owner_id,
+                Type::TEAM,
+                'Player Joined',
+                "User ID {$userId} has accepted your invitation and joined the team '{$team->name}'.",
+                [
                     'user_id' => $userId,
                     'team_id' => $team->id,
                 ]
-            ]);
+            ));
 
             DB::commit();
             return $this->sendSuccessResponse('Successfully accepted the invite to the team', 200, 'success', $team);
@@ -551,7 +551,8 @@ class TeamController extends Controller
         return $this->sendSuccessResponse('Team Players', 200, 'success', $data);
     }
 
-    public function createPlayByPlay(Request $request, $gameId){
+    public function createPlayByPlay(Request $request, $gameId)
+    {
         $validator = Validator::make($request->all(), [
             'play_by_play' => 'required|array',
 
@@ -578,7 +579,7 @@ class TeamController extends Controller
 
         DB::beginTransaction();
         try {
-            foreach ($request->play_by_play as $playByPlay){
+            foreach ($request->play_by_play as $playByPlay) {
                 $play = PlayByPlay::create([
                     'game_id' => $gameId,
                     'user_id' => $playByPlay['player_id'],
@@ -595,7 +596,7 @@ class TeamController extends Controller
 
                 if (isset($playByPlay['tags']) && is_array($playByPlay['tags'])) {
                     $tagIds = [];
-                    foreach ($playByPlay['tags'] as $tagId){
+                    foreach ($playByPlay['tags'] as $tagId) {
                         $tag = Tag::where('id', $tagId)->first();
                         if ($tag) {
                             $tagIds[] = $tag->id;
@@ -615,7 +616,8 @@ class TeamController extends Controller
         }
     }
 
-    public function getPlayByPlay(Request $request, $gameId){
+    public function getPlayByPlay(Request $request, $gameId)
+    {
         $playByPlay = PlayByPlay::where('id', $gameId)->with(['user', 'tags', 'status'])->firstOrFail();
         return $this->sendSuccessResponse('Play by play', 200, 'success', $playByPlay);
     }
