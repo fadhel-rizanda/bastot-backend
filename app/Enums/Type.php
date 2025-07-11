@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enums\Enums;
+namespace App\Enums;
 
 enum Type:string
 {
@@ -9,4 +9,5 @@ enum Type:string
     case BASKETBALL = 'BASKETBALL';
     case GAME = 'GAME';
     case TEAM = 'TEAM';
+    case TEST = 'test';
 }

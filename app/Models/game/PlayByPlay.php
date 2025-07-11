@@ -2,7 +2,6 @@
 
 namespace App\Models\game;
 
-use App\Enums\Enums\Type;
 use App\Models\Status;
 use App\Models\Tag;
 use App\Models\User;

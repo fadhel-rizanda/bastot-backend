@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\Enums\Type;
+use App\Enums\Type;
 use App\Models\community\UserCommunity;
 use App\Models\game\UserTeam;
 use Illuminate\Database\Eloquent\Model;

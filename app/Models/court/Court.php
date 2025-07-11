@@ -31,4 +31,8 @@ class Court extends Model
     public function reviews(){
         return $this->belongsToMany(Review::class, 'court_review', 'court_id', 'review_id');
     }
+
+    public function fields(){
+        return $this->hasMany(Field::class);
+    }
 }

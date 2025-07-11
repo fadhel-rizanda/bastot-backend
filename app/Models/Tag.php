@@ -2,11 +2,10 @@
 
 namespace App\Models;
 
-use App\Enums\Enums\Type;
+use App\Enums\Type;
 use App\Models\community\Community;
 use App\Models\community\Event;
 use App\Models\community\Tournament;
-use App\Models\game\Game;
 use App\Models\game\PlayByPlay;
 use App\Models\train\TrainingSession;
 use App\Models\train\WorkoutPlan;

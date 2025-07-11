@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Enums\Enums\CacheDuration;
+use App\Enums\CacheDuration;
 use App\Http\Controllers\Controller;
 use App\Models\community\Community;
 use App\Models\community\Event;
@@ -197,7 +197,15 @@ class AllController extends Controller
 
     public function getCommunities(Request $request)
     {
-        $community = Community::with(['users', 'events', 'tags', 'reviews', 'baseCourt'])->paginate(5);
+        if($request->has('name')) {
+            $community = Community::where('name', 'like', '%' . $request->name . '%')
+                ->with(['users', 'events', 'tags', 'reviews', 'baseCourt'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(5);
+            return $this->sendSuccessPaginationResponse('Communities retrieved successfully', 200, 'success', null, $community);
+        }
+        \Log::info(Community::first()->type);
+        $community = Community::with(['users', 'events', 'tags', 'reviews', 'baseCourt'])->orderBy('created_at', 'desc')->paginate(5);
         return $this->sendSuccessPaginationResponse('Communities retrieved successfully', 200, 'success', null, $community);
     }
 

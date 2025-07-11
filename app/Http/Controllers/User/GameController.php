@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Actions\HighlightTasks;
-use App\Enums\Enums\Type;
+use App\Enums\Type;
+use App\Events\NotificationSent;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessHighlightUpload;
 use App\Models\court\Reservation;
@@ -25,7 +25,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Laravel\Octane\Facades\Octane;
 
 class GameController extends Controller
 {
@@ -159,7 +158,6 @@ class GameController extends Controller
 
         DB::beginTransaction();
         try {
-//            $schedules = Schedule::whereIn('id', collect($request->reservations)->pluck('schedule_id'))
             $schedules = Schedule::whereIn('id', $request->reservations)
                 ->where('is_available', true)
                 ->orderBy('start_time')
@@ -210,35 +208,29 @@ class GameController extends Controller
                     'status_id' => 'SCHEDULED',
                 ]);
 
-                Notification::create([
-                    'user_id' => $request->user()->id,
-                    'type' => Type::GAME,
-                    'title' => 'Game Created',
-                    'message' => "Game '{$game->name}' between Team ID {$game->home_team_id} and Team ID {$game->away_team_id} has been scheduled.",
-                    'data' => [
-                        'game_id' => $game->id,
-                    ]
-                ]);
+                broadcast(new NotificationSent(
+                    $request->user()->id,
+                    Type::GAME,
+                    'Game Created',
+                    "Game '{$game->name}' between Team ID {$game->home_team_id} and Team ID {$game->away_team_id} has been scheduled.",
+                    ['game_id' => $game->id]
+                ));
 
-                Notification::create([
-                    'user_id' => Team::find($game->home_team_id)->team_owner_id,
-                    'type' => Type::GAME,
-                    'title' => 'Home Game Scheduled',
-                    'message' => "Your team is scheduled to play against Team ID {$game->away_team_id} at {$game->start_time}.",
-                    'data' => [
-                        'game_id' => $game->id,
-                    ]
-                ]);
+                broadcast(new NotificationSent(
+                    Team::find($game->home_team_id)->team_owner_id,
+                    Type::GAME,
+                    "Your team is scheduled to play against Team ID {$game->away_team_id} at {$game->start_time}.",
+                    "Game '{$game->name}' between Team ID {$game->home_team_id} and Team ID {$game->away_team_id} has been scheduled.",
+                    ['game_id' => $game->id]
+                ));
 
-                Notification::create([
-                    'user_id' => Team::find($game->away_team_id)->team_owner_id,
-                    'type' => Type::GAME,
-                    'title' => 'Away Game Scheduled',
-                    'message' => "Your team is scheduled to play against Team ID {$game->home_team_id} at {$game->start_time}.",
-                    'data' => [
-                        'game_id' => $game->id,
-                    ]
-                ]);
+                broadcast(new NotificationSent(
+                    Team::find($game->away_team_id)->team_owner_id,
+                    Type::GAME,
+                    'Away Game Scheduled',
+                    "Your team is scheduled to play against Team ID {$game->home_team_id} at {$game->start_time}.",
+                    ['game_id' => $game->id]
+                ));
 
                 foreach ($group as $sched) {
                     $sched->update(['is_available' => false]);
@@ -253,16 +245,16 @@ class GameController extends Controller
                     $fieldName = optional($sched->field)->name ?? 'Unknown Field';
                     $formattedTime = Carbon::parse($sched->start_time)->format('d M Y H:i');
 
-                    Notification::create([
-                        'user_id' => Team::find($game->away_team_id)?->team_owner_id,
-                        'type' => Type::GAME,
-                        'title' => 'Game Reservation Scheduled',
-                        'message' => "Your team is scheduled to play against team ID {$game->home_team_id} on {$formattedTime} at {$fieldName}.",
-                        'data' => [
+                    broadcast(new NotificationSent(
+                        Team::find($game->away_team_id)?->team_owner_id,
+                        Type::GAME,
+                        'Game Reservation Scheduled',
+                        "Your team is scheduled to play against team ID {$game->home_team_id} on {$formattedTime} at {$fieldName}.",
+                        [
                             'game_id' => $game->id,
                             'schedule_id' => $sched->id,
-                        ],
-                    ]);
+                        ]
+                    ));
 
                     $reservations[] = $reservation;
                     $totalCost += $sched->price_per_hour ?? 0;

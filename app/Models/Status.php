@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\Enums\Type;
+use App\Enums\Type;
 use App\Models\career\Applicant;
 use App\Models\court\Reservation;
 use App\Models\game\PlayByPlay;

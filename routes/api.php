@@ -88,6 +88,7 @@ Route::middleware('auth:api')->group(callback: function () {
         Route::post('/', [CommunityController::class, 'createCommunity']);
         Route::post('/event', [CommunityController::class, 'createEvent']);
         Route::post('/event/{eventId}/tournament', [CommunityController::class, 'createTournament']);
+        Route::get('/{communityId}', [CommunityController::class, 'detail']);
     });
 });
 
@@ -119,6 +120,8 @@ Route::middleware(['auth:api', isPlayer::class])->group(function () {
     Route::get("/own-teams", [TeamController::class, 'ownedTeams']);
     Route::get("/detail-teams/{teamId}", [TeamController::class, 'detailTeam']);
     Route::get("/teams/{teamId}/players", [TeamController::class, 'getPlayers']); //
+
+    Route::get("/courts/closest", [PlayerController::class, 'closestCourt']);
 });
 
 Route::middleware(['auth:api', isCourtOwner::class])->group(function () {
@@ -141,6 +144,16 @@ Route::get('/game/roles', [GameController::class, 'roles'])->middleware('auth:ap
 
 Route::get('/test', [AuthController::class, 'test']);
 Route::prefix('/test')->group(function () {
+    Route::post('/', [\App\Http\Controllers\TestController::class, 'post']);
    Route::get('/token', [\App\Http\Controllers\DriveController::class, 'token']);
    Route::post('/store', [\App\Http\Controllers\DriveController::class, 'store']);
+});
+
+use Illuminate\Http\Request;
+
+Route::post('/test-message', function (Request $request) {
+    $message = $request->input('message');
+    broadcast(new \App\Events\MessageSent($message));
+
+    return response()->json(['status' => 'Message sent', 'message' => $message]);
 });

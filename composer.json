@@ -15,6 +15,7 @@
         "laravel/framework": "^12.0",
         "laravel/octane": "^2.10",
         "laravel/passport": "^12.4",
+        "laravel/reverb": "^1.5",
         "laravel/tinker": "^2.10.1",
         "predis/predis": "^2.3",
         "yaza/laravel-google-drive-storage": "^4.1"
