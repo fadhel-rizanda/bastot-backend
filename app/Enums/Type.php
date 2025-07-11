@@ -9,4 +9,5 @@ enum Type:string
     case BASKETBALL = 'BASKETBALL';
     case GAME = 'GAME';
     case TEAM = 'TEAM';
+    case TEST = 'test';
 }

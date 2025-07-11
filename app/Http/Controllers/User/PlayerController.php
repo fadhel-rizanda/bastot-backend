@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\court\Court;
 use App\Models\game\Game;
 use App\Traits\ResponseAPI;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class PlayerController extends Controller
 {
@@ -208,4 +211,75 @@ class PlayerController extends Controller
         return $this->sendSuccessPaginationResponse('Games retrieved successfully', 200, 'success', $data, $games);
     }
 
+    public function closestCourt(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendErrorResponse($validator->errors(), 422, 'Validation failed', null);
+        }
+
+//  postgresql, mysql
+        $court = Court::select('*', DB::raw(
+            '6371 *
+            acos(
+                cos(radians(?)) * cos(radians(latitude)) *
+                cos(radians(longitude) - radians(?)) +
+                sin(radians(?)) * sin(radians(latitude))
+            ) as distance'
+        ))
+            ->addBinding([$request->latitude, $request->longitude, $request->latitude], 'select')
+            ->where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0)
+            ->orderBy('distance')
+            ->whereHas('fields', function ($q) {
+                $q->where('is_available', true);
+            })
+            ->with(['fields', 'location'])
+            ->paginate(5);
+
+//  sqlite
+    /*    $court = Court::select('*', DB::raw(
+            '(
+            (latitude - ?) * (latitude - ?) +
+            (longitude - ?) * (longitude - ?)
+            ) as distance'
+        ))
+            ->addBinding([
+                $request->latitude, $request->latitude,
+                $request->longitude, $request->longitude
+            ], 'select')
+            ->where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0)
+            ->orderBy('distance')
+            ->whereHas('fields', function ($q) {
+                $q->where('is_available', true);
+            })
+            ->with(['fields', 'location'])
+            ->paginate(5);*/
+
+        $data = $court->through(function ($court) {
+            return [
+                'id' => $court->id,
+                'name' => $court->name,
+                'address' => $court->address,
+                'latitude' => $court->latitude,
+                'longitude' => $court->longitude,
+                'profile_picture' => $court->profile_picture,
+                'distance' => round($court->distance, 2),
+                'fields' => $court->fields->map(function ($field) {
+                    return [
+                        'id' => $field->id,
+                        'name' => $field->name,
+                        'is_available' => $field->is_available,
+                    ];
+                }),
+            ];
+        });
+
+        return $this->sendSuccessPaginationResponse('Closest courts retrieved successfully', 200, 'success', null, $data);
+    }
 }

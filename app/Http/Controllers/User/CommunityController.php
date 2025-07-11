@@ -32,6 +32,8 @@ class CommunityController extends Controller
             'users' => 'required|array',
             'users.*.user_id' => 'required|integer',
             'users.*.role_id' => 'required|string',
+            'tags' => 'nullable|array',
+            'tags.*' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -55,6 +57,12 @@ class CommunityController extends Controller
                     'status_id' => 'ACTIVE'
                 ]);
                 $userCommunities->add($userCommunity);
+            }
+
+            if ($request->filled('tags')) {
+                foreach ($request->tags as $tagName) {
+                    $community->tags()->attach($tagName);
+                }
             }
 
             $data = [
@@ -174,7 +182,7 @@ class CommunityController extends Controller
             'tags' => 'nullable|array',
             'tags.*' => 'nullable|integer',
             'games' => 'nullable|array',
-            'games.*.user_id' => 'nullable|integer',
+            'games.*.id' => 'nullable|integer',
             'games.*.round' => 'nullable|string',
         ]);
 
@@ -212,7 +220,7 @@ class CommunityController extends Controller
             $games = collect();
 
             foreach ($request->games as $game) {
-                $tournamentGame = $tournament->games()->attach($game->user_id, ['round' => $game->round]);
+                $tournamentGame = $tournament->games()->attach($game['id'], ['round' => $game['round']]);
                 $games->push($tournamentGame);
             }
 
@@ -228,5 +236,13 @@ class CommunityController extends Controller
             DB::rollBack();
             return $this->sendExceptionResponse("Failed to create Tournament", 500, null, $e);
         }
+    }
+
+    public function detail($communityId)
+    {
+        $community = Community::with(['users', 'events', 'tags', 'reviews', 'baseCourt'])
+            ->findOrFail($communityId);
+
+        return $this->sendSuccessResponse("Community retrieved successfully", 200, null, $community);
     }
 }

@@ -11,6 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::create('roles', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('name')->unique()->nullable(false);
+            $table->text('description')->unique();
+            $table->string('type')->nullable(false); // 'general', 'community', 'team', 'event', 'tournament', 'workout_plan', 'training_session')
+            $table->string('color')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -22,8 +31,10 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
 
-            $table->foreignId('role_id')->constrained('roles')
-                ->nullable()->cascadeOnDelete()->cascadeOnUpdate();
+//            $table->foreignId('role_id')->constrained('roles')
+//                ->nullable()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->string('role_id')->nullable();
+            $table->foreign('role_id')->references('id')->on('roles')->cascadeOnDelete()->cascadeOnUpdate();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -50,5 +61,6 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('roles');
     }
 };
