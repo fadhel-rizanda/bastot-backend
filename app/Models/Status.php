@@ -11,14 +11,14 @@ use Illuminate\Database\Eloquent\Model;
 class Status extends Model
 {
     protected $table = 'statuses';
+    protected $keyType = 'string';
+    public $incrementing = false;
     protected $fillable = [
         'name',
         'type',
         'description',
         'color',
     ];
-    protected $keyType = 'string';
-    public $incrementing = false;
     protected $casts = [
         'type' => Type::class,
     ];

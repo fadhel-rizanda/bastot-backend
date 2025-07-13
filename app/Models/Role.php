@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 class Role extends Model
 {
     protected $table = 'roles';
+    //    biar id ga 0 pas return
+    protected $keyType = 'string';
+    public $incrementing = false;
     protected $fillable = [
         'id',
         'name',
@@ -17,9 +20,6 @@ class Role extends Model
         'description',
         'color'
     ];
-//    biar id ga 0 pas return
-    protected $keyType = 'string';
-    public $incrementing = false;
 
     protected $casts = [
         'type' => Type::class,

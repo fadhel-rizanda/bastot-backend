@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
 class Tag extends Model
 {
     protected $table = 'tags';
+    protected $keyType = 'string';
+    public $incrementing = false;
     protected $fillable = [
         'id',
         'name',
@@ -21,8 +23,6 @@ class Tag extends Model
         'color',
         'type'
     ];
-    protected $keyType = 'string';
-    public $incrementing = false;
     protected $casts = [
         'type' => Type::class,
     ];

@@ -39,6 +39,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'phone'
     ];
 
+//    biar uuid jalan
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -61,15 +65,6 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
-
-    // UUID
-    // protected static function boot()
-    // {
-    //     parent::boot();
-    //     static::creating(function ($model) {
-    //         $model->id = Str::uuid()->toString();
-    //     });
-    // }
 
     /**
      * Get the roles associated with the user.

@@ -9,6 +9,18 @@ use Illuminate\Database\Eloquent\Model;
 class Reservation extends Model
 {
     protected $table = 'reservations';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = (string) \Str::uuid();
+            }
+        });
+    }
     protected $fillable = [
         'schedule_id',
         'game_id',

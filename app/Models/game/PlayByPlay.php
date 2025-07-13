@@ -10,6 +10,18 @@ use Illuminate\Database\Eloquent\Model;
 class PlayByPlay extends Model
 {
     protected $table = 'play_by_play';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = (string) \Str::uuid();
+            }
+        });
+    }
 
     protected $fillable = [
         'game_id',

@@ -23,7 +23,7 @@ class NotificationSent implements ShouldBroadcast
      * Create a new event instance.
      *
      */
-    public function __construct(int $userId, Type $type, string $title, string $message, array $data = [])
+    public function __construct(string $userId, Type $type, string $title, string $message, array $data = [])
     {
         $this->notification = Notification::create([
             'user_id' => $userId,

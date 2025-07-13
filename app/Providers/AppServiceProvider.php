@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Client;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
@@ -39,6 +40,8 @@ class AppServiceProvider extends ServiceProvider
 
 
 //        Passport::routes();
+
+        Passport::useClientModel(Client::class);
 
         Passport::tokensExpireIn(now()->addHour());
         Passport::refreshTokensExpireIn(now()->addDays(30));
